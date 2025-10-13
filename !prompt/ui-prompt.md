@@ -16,5 +16,4 @@ BJUT 学校蓝色：#0096C2
 校训：school-motto-810x134.png
 图书馆logo：school-library-579x299.png
 
-4 字体：
 

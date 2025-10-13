@@ -2,111 +2,475 @@
 import { safeAreaInsets } from '@/utils/systemInfo'
 
 defineOptions({
-  name: 'Home',
+  name: 'HomeStyle3',
 })
+
 definePage({
-  // 使用 type: "home" 属性设置首页，其他页面不需要设置，默认为page
   type: 'home',
   style: {
-    // 'custom' 表示开启自定义导航栏，默认 'default'
     navigationStyle: 'custom',
-    navigationBarTitleText: '首页',
+    navigationBarTitleText: '日新智课',
   },
 })
 
-const description = ref(
-  'unibest 是一个集成了多种工具和技术的 uniapp 开发模板，由 uniapp + Vue3 + Ts + Vite5 + UnoCss + VSCode 构建，模板具有代码提示、自动格式化、统一配置、代码片段等功能，并内置了许多常用的基本组件和基本功能，让你编写 uniapp 拥有 best 体验。',
-)
-console.log('index/index 首页打印了')
+// 主要服务
+const services = [
+  {
+    icon: 'calendar',
+    title: '排课申请',
+    desc: '快速提交实验室预约',
+    color: '#0096C2',
+    url: '/pages-sub/apply/index',
+  },
+  {
+    icon: 'search',
+    title: '申请查询',
+    desc: '查看审核进度',
+    color: '#0078A8',
+    url: '/pages-sub/myapply/index',
+  },
+  {
+    icon: 'file-text',
+    title: '历史记录',
+    desc: '查询历史申请',
+    color: '#006B8F',
+    url: '/pages-sub/record/index',
+  },
+]
 
-onLoad(() => {
-  console.log('测试 uni API 自动引入: onLoad')
-})
+// 通知公告
+const notices = [
+  { title: '关于2024-2025学年第二学期实验室排课的通知', time: '2024-10-08' },
+  { title: '实验室设备维护通知', time: '2024-10-05' },
+]
 
-// #region gotoAbout
-function gotoAbout() {
-  uni.navigateTo({
-    url: '/pages-sub/about/about',
-  })
+// 常用功能
+const quickActions = [
+  { name: '使用指南', icon: 'notebook' },
+  { name: '常见问题', icon: 'question-circle' },
+  { name: '意见反馈', icon: 'chat' },
+  { name: '关于我们', icon: 'info-circle' },
+]
+
+// 跳转页面
+function navigateTo(url: string) {
+  if (url) {
+    uni.navigateTo({ url })
+  }
+  else {
+    uni.showToast({ title: '功能开发中', icon: 'none' })
+  }
 }
-// #endregion
 </script>
 
 <template>
-  <view class="bg-white px-4 pt-2" :style="{ marginTop: `${safeAreaInsets?.top}px` }">
-    <view class="mt-10">
-      <image src="/static/logo.svg" alt="" class="mx-auto block h-28 w-28" />
-    </view>
-    <view class="mt-4 text-center text-4xl text-[#d14328]">
-      unibest
-    </view>
-    <view class="mb-8 mt-2 text-center text-2xl">
-      最好用的 uniapp 开发模板
-    </view>
-
-    <view class="m-auto mb-2 max-w-100 text-justify indent text-4">
-      {{ description }}
-    </view>
-    <view class="mt-4 text-center">
-      作者：
-      <text class="text-green-500">
-        菲鸽
-      </text>
-    </view>
-    <view class="mt-4 text-center">
-      官网地址：
-      <text class="text-green-500">
-        https://unibest.tech
-      </text>
+  <view class="page-container" :style="{ paddingTop: `${safeAreaInsets?.top}px` }">
+    <!-- 顶部Banner -->
+    <view class="top-banner">
+      <view class="banner-overlay">
+        <view class="banner-content">
+          <image src="/static/school/school-logo-377x378.png" mode="aspectFit" class="banner-logo" />
+          <view class="banner-text">
+            <text class="banner-title">日新智课</text>
+            <text class="banner-subtitle">BJUT 智慧排课系统</text>
+          </view>
+        </view>
+        <view class="motto-wrapper">
+          <image src="/static/school/school-motto-810x134.png" mode="widthFix" class="banner-motto" />
+        </view>
+      </view>
     </view>
 
-    <!-- #ifdef H5 -->
-    <view class="mt-4 text-center">
-      <a href="https://unibest.tech/base/3-plugin" target="_blank" class="text-green-500">
-        新手请看必看章节1：
-      </a>
-    </view>
-    <!-- #endif -->
-    <!-- #ifdef MP-WEIXIN -->
-    <view class="mt-4 text-center">
-      新手请看必看章节1：
-      <text class="text-green-500">
-        https://unibest.tech/base/3-plugin
-      </text>
-    </view>
-    <!-- #endif -->
-    <!-- #ifdef H5 -->
-    <view class="mt-4 text-center">
-      <a href="https://unibest.tech/base/14-faq" target="_blank" class="text-green-500">
-        新手请看必看章节2：
-      </a>
-    </view>
-    <!-- #endif -->
-    <!-- #ifdef MP-WEIXIN -->
-    <view class="mt-4 text-center">
-      新手请看必看章节2：
-      <text class="text-green-500">
-        https://unibest.tech/base/14-faq
-      </text>
-    </view>
-    <!-- #endif -->
+    <view class="content-section">
+      <!-- 通知公告 -->
+      <view class="notice-section">
+        <view class="section-header-notice">
+          <text class="section-title-notice">通知公告</text>
+          <text class="more-link" @click="navigateTo('')">更多 ></text>
+        </view>
+        <view class="notice-list">
+          <view
+            v-for="(item, index) in notices"
+            :key="index"
+            class="notice-item"
+            @click="navigateTo('')"
+          >
+            <view class="notice-dot" />
+            <view class="notice-content">
+              <text class="notice-title">{{ item.title }}</text>
+              <text class="notice-time">{{ item.time }}</text>
+            </view>
+          </view>
+        </view>
+      </view>
 
-    <view class="mt-4 text-center">
-      <u-button type="primary" size="medium">
-        UI组件按钮
-      </u-button>
+      <!-- 主要服务 -->
+      <view class="services-section">
+        <view class="section-header">
+          <view class="header-line" />
+          <text class="section-title">主要服务</text>
+          <view class="header-line" />
+        </view>
+        <view class="services-list">
+          <view
+            v-for="(item, index) in services"
+            :key="index"
+            class="service-card"
+            @click="navigateTo(item.url)"
+          >
+            <view class="service-icon" :style="{ backgroundColor: item.color }">
+              <u-icon :name="item.icon" size="36" color="#ffffff" />
+            </view>
+            <view class="service-info">
+              <text class="service-title">{{ item.title }}</text>
+              <text class="service-desc">{{ item.desc }}</text>
+            </view>
+            <u-icon name="arrow-right" size="20" color="#cccccc" />
+          </view>
+        </view>
+      </view>
+
+      <!-- 常用功能 -->
+      <view class="quick-section">
+        <view class="section-header">
+          <view class="header-line" />
+          <text class="section-title">常用功能</text>
+          <view class="header-line" />
+        </view>
+        <view class="quick-grid">
+          <view
+            v-for="(item, index) in quickActions"
+            :key="index"
+            class="quick-item"
+            @click="navigateTo('')"
+          >
+            <view class="quick-icon-wrapper">
+              <u-icon :name="item.icon" size="32" color="#0096C2" />
+            </view>
+            <text class="quick-name">{{ item.name }}</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 学校信息卡片 -->
+      <view class="school-card">
+        <image src="/static/school/school-library-579x299.png" mode="widthFix" class="library-image" />
+        <view class="school-info">
+          <text class="school-name">北京工业大学</text>
+          <text class="school-separator" />
+          <text class="school-dept">实验中心</text>
+        </view>
+      </view>
+
+      <!-- 底部空白 -->
+      <view class="bottom-space" />
     </view>
-    <view class="mb-4 mt-4 text-center">
-      UI组件官网：
-      <u-link color="#22c55e" href="https://uview-pro.anyup.cn/" underline>
-        https://uviewpro.cn/
-      </u-link>
-    </view>
-    <view class="mt-4 text-center">
-      <wd-button type="primary" class="ml-2" @click="gotoAbout">
-        前往示例页
-      </wd-button>
-    </view>
-    <view class="h-6" />
   </view>
 </template>
+
+<style scoped lang="scss">
+.page-container {
+  min-height: 100vh;
+  background-color: #f5f7fa;
+}
+
+// 顶部Banner
+.top-banner {
+  height: 300rpx;
+  background: linear-gradient(to right, #0096c2 0%, #0096c2 50%, #ffffff 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.banner-overlay {
+  height: 100%;
+  padding: 40rpx 30rpx;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.banner-content {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.banner-logo {
+  width: 100rpx;
+  height: 100rpx;
+  margin-right: 24rpx;
+  background-color: rgba(255, 255, 255, 0.9);
+  border-radius: 200rpx;
+  padding: 5rpx;
+}
+
+.banner-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.banner-title {
+  font-size: 44rpx;
+  font-weight: bold;
+  color: #ffffff;
+  margin-bottom: 8rpx;
+}
+
+.banner-subtitle {
+  font-size: 26rpx;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.motto-wrapper {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-left: 20rpx;
+}
+
+.banner-motto {
+  width: 280rpx;
+  max-width: 100%;
+}
+
+// 内容区域
+.content-section {
+  margin-top: 10rpx;
+  padding: 0 30rpx;
+}
+
+// 通知公告
+.notice-section {
+  background-color: #ffffff;
+  border-radius: 20rpx;
+  padding: 30rpx;
+  box-shadow: 0 8rpx 24rpx rgba(0, 150, 194, 0.12);
+  margin-bottom: 20rpx;
+}
+
+.section-header-notice {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24rpx;
+}
+
+.section-title-notice {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333333;
+}
+
+.more-link {
+  font-size: 24rpx;
+  color: #0096c2;
+}
+
+.notice-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+.notice-item {
+  display: flex;
+  align-items: flex-start;
+  padding: 20rpx;
+  background-color: #f8fbff;
+  border-radius: 8rpx;
+}
+
+.notice-item:active {
+  background-color: #e6f4f9;
+}
+
+.notice-dot {
+  width: 12rpx;
+  height: 12rpx;
+  background-color: #0096c2;
+  border-radius: 50%;
+  margin-top: 12rpx;
+  margin-right: 16rpx;
+  flex-shrink: 0;
+}
+
+.notice-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.notice-title {
+  font-size: 28rpx;
+  color: #333333;
+  margin-bottom: 8rpx;
+  line-height: 1.5;
+}
+
+.notice-time {
+  font-size: 22rpx;
+  color: #999999;
+}
+
+// 主要服务
+.services-section {
+  margin-bottom: 30rpx;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 30rpx;
+}
+
+.header-line {
+  width: 60rpx;
+  height: 4rpx;
+  background-color: #0096c2;
+}
+
+.section-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333333;
+  margin: 0 20rpx;
+}
+
+.services-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+.service-card {
+  background-color: #ffffff;
+  border-radius: 16rpx;
+  padding: 30rpx;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.05);
+}
+
+.service-card:active {
+  transform: scale(0.98);
+  transition: all 0.2s;
+}
+
+.service-icon {
+  width: 88rpx;
+  height: 88rpx;
+  border-radius: 18rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 24rpx;
+  flex-shrink: 0;
+}
+
+.service-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.service-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333333;
+  margin-bottom: 8rpx;
+}
+
+.service-desc {
+  font-size: 26rpx;
+  color: #666666;
+}
+
+// 常用功能
+.quick-section {
+  margin-bottom: 30rpx;
+}
+
+.quick-grid {
+  background-color: #ffffff;
+  border-radius: 16rpx;
+  padding: 40rpx 20rpx;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 30rpx 0;
+}
+
+.quick-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.quick-item:active {
+  opacity: 0.7;
+}
+
+.quick-icon-wrapper {
+  width: 88rpx;
+  height: 88rpx;
+  background-color: #e6f7fb;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16rpx;
+}
+
+.quick-name {
+  font-size: 24rpx;
+  color: #333333;
+  text-align: center;
+}
+
+// 学校信息卡片
+.school-card {
+  background-color: #ffffff;
+  border-radius: 16rpx;
+  padding: 30rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.05);
+}
+
+.library-image {
+  width: 280rpx;
+  margin-bottom: 24rpx;
+  opacity: 0.8;
+}
+
+.school-info {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.school-name {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #0096c2;
+}
+
+.school-separator {
+  font-size: 28rpx;
+  color: #999999;
+  margin: 0 12rpx;
+}
+
+.school-dept {
+  font-size: 26rpx;
+  color: #666666;
+}
+
+.bottom-space {
+  height: 40rpx;
+}
+</style>
