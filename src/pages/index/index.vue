@@ -27,12 +27,12 @@ const services = [
     title: '申请查询',
     desc: '查看审核进度',
     color: '#0078A8',
-    url: '/pages-sub/myapply/index',
+    url: '/pages-sub/query/index',
   },
   {
     icon: 'file-text',
     title: '历史记录',
-    desc: '查询历史申请',
+    desc: '查看往年记录',
     color: '#006B8F',
     url: '/pages-sub/record/index',
   },
@@ -46,10 +46,10 @@ const notices = [
 
 // 常用功能
 const quickActions = [
-  { name: '使用指南', icon: 'notebook' },
-  { name: '常见问题', icon: 'question-circle' },
-  { name: '意见反馈', icon: 'chat' },
-  { name: '关于我们', icon: 'info-circle' },
+  { name: '使用指南', icon: 'info-circle', url: '/pages-sub/guide/index' },
+  { name: '常见问题', icon: 'question-circle', url: '/pages-sub/faq/index' },
+  { name: '意见反馈', icon: 'chat', url: '/pages-sub/feedback/index' },
+  { name: '关于我们', icon: 'more-circle', url: '/pages-sub/about/index' },
 ]
 
 // 跳转页面
@@ -142,7 +142,7 @@ function navigateTo(url: string) {
             v-for="(item, index) in quickActions"
             :key="index"
             class="quick-item"
-            @click="navigateTo('')"
+            @click="navigateTo(item.url)"
           >
             <view class="quick-icon-wrapper">
               <u-icon :name="item.icon" size="32" color="#0096C2" />

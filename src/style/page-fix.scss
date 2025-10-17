@@ -1,0 +1,85 @@
+// 页面布局修复样式 - 防止内容超出屏幕边缘
+// 适用于所有使用自定义导航栏的页面
+
+// 1. 全局盒模型修复
+.page-container {
+  min-height: 100vh;
+  background-color: #f5f7fa;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  box-sizing: border-box;
+  overflow-x: hidden; // 防止横向滚动
+}
+
+// 2. 滚动容器修复
+.scroll-container {
+  flex: 1;
+  width: 100%;
+  box-sizing: border-box;
+  overflow-x: hidden;
+}
+
+// 3. 内容容器修复
+.scroll-container > view,
+.scroll-container > scroll-view {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+// 4. 通用卡片和容器
+.welcome-card,
+.intro-card,
+.tip-card,
+.tip-banner,
+.form-card,
+.contact-card,
+.feature-card,
+.tips-card,
+.steps-container,
+.team-card,
+.teacher-card,
+.faq-item,
+.record-card,
+.booking-card {
+  width: 100%;
+  box-sizing: border-box;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+// 5. 文本内容修复
+.tip-text,
+.welcome-desc,
+.system-desc,
+.step-desc,
+.item-text,
+.answer-text,
+.tips-item,
+.member-duties,
+.contact-text,
+.question-text {
+  word-break: break-all;
+  overflow-wrap: break-word;
+  max-width: 100%;
+}
+
+// 6. 输入框修复
+.custom-input,
+.custom-textarea,
+.select-input,
+.textarea-wrapper {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+// 7. 导航栏修复
+.custom-navbar {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.navbar-content {
+  width: 100%;
+  box-sizing: border-box;
+}
