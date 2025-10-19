@@ -1,5 +1,7 @@
 <script lang="ts" setup>
+import { storeToRefs } from 'pinia'
 import { onMounted, onUnmounted, reactive, ref } from 'vue'
+import { useUserStore } from '@/store'
 import { safeAreaInsets } from '@/utils/systemInfo'
 
 defineOptions({
@@ -12,6 +14,10 @@ definePage({
     navigationBarTitleText: '排课申请',
   },
 })
+
+// 用户信息
+const userStore = useUserStore()
+const { userInfo } = storeToRefs(userStore)
 
 // 表单引用
 const formRef = ref()
@@ -216,6 +222,29 @@ function formatExperimentTime(): string {
 // 返回上一页
 function goBack() {
   uni.navigateBack()
+}
+
+// 导入个人信息
+function importTeacherInfo() {
+  if (!userInfo.value.teacherName && !userInfo.value.teacherPhone && !userInfo.value.teacherEmail) {
+    uni.showModal({
+      title: '提示',
+      content: '您还没有填写个人信息，是否前往填写？',
+      confirmColor: '#0096C2',
+      success: (res) => {
+        if (res.confirm) {
+          uni.switchTab({ url: '/pages/me/me' })
+        }
+      },
+    })
+    return
+  }
+
+  formData.teacherName = userInfo.value.teacherName || ''
+  formData.teacherPhone = userInfo.value.teacherPhone || ''
+  formData.teacherEmail = userInfo.value.teacherEmail || ''
+
+  uni.showToast({ title: '导入成功', icon: 'success' })
 }
 
 // 跳转到签名页面
@@ -536,6 +565,19 @@ onUnmounted(() => {
           <view class="section-title">
             <view class="title-line" />
             <text class="title-text">教师信息</text>
+            <u-button
+              type="primary"
+              size="mini"
+              :custom-style="{
+                backgroundColor: '#0096C2',
+                borderColor: '#0096C2',
+                marginLeft: 'auto',
+              }"
+              @click="importTeacherInfo"
+            >
+              <u-icon name="download" size="14" color="#ffffff" style="margin-right: 6rpx;" />
+              导入信息
+            </u-button>
           </view>
 
           <u-form-item label="教师姓名" prop="teacherName" required border-bottom>

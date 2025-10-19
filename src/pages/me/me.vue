@@ -15,6 +15,13 @@ definePage({
   },
 })
 
+// 导航栏配置
+const navBarConfig = ref({
+  title: '我的',
+  frontColor: '#ffffff' as '#ffffff' | '#000000',
+  backgroundColor: '#0096C2',
+})
+
 const userStore = useUserStore()
 const tokenStore = useTokenStore()
 // 使用storeToRefs解构userInfo
@@ -161,12 +168,78 @@ function navigateTo(url: string) {
     uni.navigateTo({ url })
   }
 }
+
+// 编辑个人信息
+const showEditDialog = ref(false)
+const editForm = ref({
+  teacherName: '',
+  teacherPhone: '',
+  teacherEmail: '',
+})
+
+function openEditDialog() {
+  editForm.value = {
+    teacherName: userInfo.value.teacherName || '',
+    teacherPhone: userInfo.value.teacherPhone || '',
+    teacherEmail: userInfo.value.teacherEmail || '',
+  }
+  showEditDialog.value = true
+}
+
+function saveUserInfo() {
+  // 验证
+  if (!editForm.value.teacherName) {
+    uni.showToast({ title: '请填写姓名', icon: 'none' })
+    return
+  }
+  if (!editForm.value.teacherPhone) {
+    uni.showToast({ title: '请填写电话', icon: 'none' })
+    return
+  }
+  const phoneReg = /^1[3-9]\d{9}$/
+  if (!phoneReg.test(editForm.value.teacherPhone)) {
+    uni.showToast({ title: '请输入正确的手机号', icon: 'none' })
+    return
+  }
+  if (editForm.value.teacherEmail) {
+    const emailReg = /^[^\s@]+@[^\s@][^\s.@]*\.[^\s@]+$/
+    if (!emailReg.test(editForm.value.teacherEmail)) {
+      uni.showToast({ title: '请输入正确的邮箱', icon: 'none' })
+      return
+    }
+  }
+
+  // 保存
+  userStore.setUserInfo({
+    ...userInfo.value,
+    teacherName: editForm.value.teacherName,
+    teacherPhone: editForm.value.teacherPhone,
+    teacherEmail: editForm.value.teacherEmail,
+  })
+
+  showEditDialog.value = false
+  uni.showToast({ title: '保存成功', icon: 'success' })
+}
 </script>
 
 <template>
+  <page-meta>
+    <navigation-bar
+      :title="navBarConfig.title"
+      :front-color="navBarConfig.frontColor"
+      :background-color="navBarConfig.backgroundColor"
+    />
+  </page-meta>
+
   <view class="page-container">
     <!-- 顶部背景 -->
-    <view class="header-bg" />
+    <view class="header-bg">
+      <image
+        src="/static/school/schoolbg-1920x1084.jpg"
+        mode="aspectFill"
+        class="bg-image"
+      />
+    </view>
 
     <scroll-view scroll-y class="scroll-container">
       <!-- 用户信息卡片 -->
@@ -181,12 +254,20 @@ function navigateTo(url: string) {
           </view>
           <u-button
             type="primary"
-            size="small"
-            :custom-style="{ borderRadius: '50rpx' }"
+            size="medium"
+            :custom-style="{
+              borderRadius: '50rpx',
+              backgroundColor: '#0096C2',
+              borderColor: '#0096C2',
+              fontSize: '28rpx',
+              fontWeight: '600',
+              padding: '0 40rpx',
+              height: '80rpx',
+            }"
             @click="handleLogin"
           >
             <!-- #ifdef MP-WEIXIN -->
-            微信一键登录
+            微信登录
             <!-- #endif -->
             <!-- #ifndef MP-WEIXIN -->
             立即登录
@@ -224,9 +305,29 @@ function navigateTo(url: string) {
           </view>
 
           <!-- 编辑按钮 -->
-          <view class="edit-btn">
+          <view class="edit-btn" @click="openEditDialog">
             <u-icon name="edit-pen" size="20" color="#999999" />
           </view>
+        </view>
+
+        <!-- 教师信息 -->
+        <view v-if="userInfo.teacherName || userInfo.teacherPhone || userInfo.teacherEmail" class="teacher-info">
+          <view v-if="userInfo.teacherName" class="info-item">
+            <u-icon name="account" size="16" color="#0096C2" />
+            <text class="info-text">{{ userInfo.teacherName }}</text>
+          </view>
+          <view v-if="userInfo.teacherPhone" class="info-item">
+            <u-icon name="phone" size="16" color="#0096C2" />
+            <text class="info-text">{{ userInfo.teacherPhone }}</text>
+          </view>
+          <view v-if="userInfo.teacherEmail" class="info-item">
+            <u-icon name="email" size="16" color="#0096C2" />
+            <text class="info-text">{{ userInfo.teacherEmail }}</text>
+          </view>
+        </view>
+        <view v-else class="teacher-info-tip" @click="openEditDialog">
+          <u-icon name="plus-circle" size="18" color="#0096C2" />
+          <text class="tip-text">点击添加教师信息</text>
         </view>
       </view>
 
@@ -293,6 +394,43 @@ function navigateTo(url: string) {
       <!-- 底部安全距离 -->
       <view class="safe-area-bottom" />
     </scroll-view>
+
+    <!-- 编辑个人信息对话框 -->
+    <u-popup v-model="showEditDialog" mode="center" border-radius="20">
+      <view class="edit-dialog">
+        <view class="dialog-title">
+          编辑个人信息
+        </view>
+        <view class="dialog-content">
+          <view class="form-item">
+            <view class="form-label">
+              <text class="required">*</text>姓名
+            </view>
+            <input v-model="editForm.teacherName" class="form-input" placeholder="请输入真实姓名">
+          </view>
+          <view class="form-item">
+            <view class="form-label">
+              <text class="required">*</text>电话
+            </view>
+            <input v-model="editForm.teacherPhone" class="form-input" type="text" :maxlength="11" placeholder="请输入手机号">
+          </view>
+          <view class="form-item">
+            <view class="form-label">
+              邮箱
+            </view>
+            <input v-model="editForm.teacherEmail" class="form-input" placeholder="请输入邮箱（选填）">
+          </view>
+        </view>
+        <view class="dialog-footer">
+          <u-button size="medium" @click="showEditDialog = false">
+            取消
+          </u-button>
+          <u-button type="primary" size="medium" :custom-style="{ backgroundColor: '#0096C2', borderColor: '#0096C2', marginLeft: '20rpx' }" @click="saveUserInfo">
+            保存
+          </u-button>
+        </view>
+      </view>
+    </u-popup>
   </view>
 </template>
 
@@ -313,7 +451,13 @@ function navigateTo(url: string) {
   left: 0;
   right: 0;
   height: 400rpx;
-  background: linear-gradient(135deg, #0096c2 0%, #0078a8 100%);
+  overflow: hidden;
+}
+
+.bg-image {
+  width: 100%;
+  height: 100%;
+  opacity: 0.8;
 }
 
 .scroll-container {
@@ -327,11 +471,12 @@ function navigateTo(url: string) {
 .user-card {
   margin: 40rpx 30rpx 20rpx;
   padding: 40rpx 30rpx;
-  background-color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.8);
   border-radius: 20rpx;
   box-shadow: 0 4rpx 20rpx rgba(0, 150, 194, 0.15);
   width: calc(100% - 60rpx);
   box-sizing: border-box;
+  backdrop-filter: blur(10rpx);
 }
 
 .login-placeholder {
@@ -551,5 +696,100 @@ function navigateTo(url: string) {
 
 .safe-area-bottom {
   height: 40rpx;
+}
+
+// 教师信息
+.teacher-info {
+  margin-top: 24rpx;
+  padding-top: 24rpx;
+  border-top: 1rpx solid #f0f0f0;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  gap: 16rpx;
+  flex-wrap: wrap;
+}
+
+.info-item {
+  display: flex;
+  align-items: center;
+  gap: 6rpx;
+}
+
+.info-text {
+  font-size: 24rpx;
+  color: #666666;
+}
+
+.teacher-info-tip {
+  margin-top: 24rpx;
+  padding: 20rpx;
+  border: 2rpx dashed #0096c2;
+  border-radius: 12rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+}
+
+.tip-text {
+  font-size: 24rpx;
+  color: #0096c2;
+}
+
+// 编辑对话框
+.edit-dialog {
+  width: 600rpx;
+  background-color: #ffffff;
+  border-radius: 20rpx;
+  overflow: hidden;
+}
+
+.dialog-title {
+  padding: 40rpx 30rpx 30rpx;
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333333;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.dialog-content {
+  padding: 30rpx;
+}
+
+.form-item {
+  margin-bottom: 24rpx;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.form-label {
+  margin-bottom: 12rpx;
+  font-size: 26rpx;
+  color: #333333;
+  font-weight: 500;
+}
+
+.required {
+  color: #ff4d4f;
+  margin-right: 4rpx;
+}
+
+.form-input {
+  width: 100%;
+  height: 72rpx;
+  padding: 0 20rpx;
+  background-color: #f5f7fa;
+  border-radius: 12rpx;
+  font-size: 26rpx;
+  color: #333333;
+  box-sizing: border-box;
+}
+
+.dialog-footer {
+  padding: 20rpx 30rpx 30rpx;
+  display: flex;
 }
 </style>

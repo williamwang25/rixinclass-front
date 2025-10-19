@@ -33,10 +33,16 @@ export const nativeTabbarList: NativeTabBarItem[] = [
     text: '首页',
   },
   {
+    iconPath: 'static/tabbar/bell.png',
+    selectedIconPath: 'static/tabbar/bellHL.png',
+    pagePath: 'pages/notice/index',
+    text: '通知',
+  },
+  {
     iconPath: 'static/tabbar/personal.png',
     selectedIconPath: 'static/tabbar/personalHL.png',
     pagePath: 'pages/me/me',
-    text: '个人',
+    text: '我的',
   },
 ]
 
@@ -58,21 +64,23 @@ export const customTabbarList: CustomTabBarItem[] = [
   {
     text: '首页',
     pagePath: 'pages/index/index',
-    // 注意 unocss 图标需要如下处理：（二选一）
-    // 1）在fg-tabbar.vue页面上引入一下并注释掉（见tabbar/index.vue代码第2行）
-    // 2）配置到 unocss.config.ts 的 safelist 中
-    iconType: 'unocss',
-    icon: 'i-carbon-home',
-    // badge: 'dot',
+    iconType: 'image',
+    icon: '/static/tabbar/home.png',
+    iconActive: '/static/tabbar/homeHL.png',
   },
   {
-    pagePath: 'pages/me/me',
+    text: '通知',
+    pagePath: 'pages/notice/index',
+    iconType: 'image',
+    icon: '/static/tabbar/bell.png',
+    iconActive: '/static/tabbar/bellHL.png',
+  },
+  {
     text: '我的',
-    // 1）在fg-tabbar.vue页面上引入一下并注释掉（见tabbar/index.vue代码第2行）
-    // 2）配置到 unocss.config.ts 的 safelist 中
-    iconType: 'unocss',
-    icon: 'i-carbon-user',
-    // badge: 10,
+    pagePath: 'pages/me/me',
+    iconType: 'image',
+    icon: '/static/tabbar/personal.png',
+    iconActive: '/static/tabbar/personalHL.png',
   },
   // 其他类型演示
   // 1、uiLib

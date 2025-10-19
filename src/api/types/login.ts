@@ -28,6 +28,10 @@ export interface IUserInfoRes {
   username: string
   nickname: string
   avatar?: string
+  // 教师信息（用于排课申请）
+  teacherName?: string
+  teacherPhone?: string
+  teacherEmail?: string
   [key: string]: any // 允许其他扩展字段
 }
 
