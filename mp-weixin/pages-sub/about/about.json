@@ -1,0 +1,8 @@
+{
+  "navigationBarTitleText": "关于",
+  "usingComponents": {
+    "request-open-api-comp": "./components/request-openapi",
+    "request-comp": "./components/request",
+    "v-bind-css": "./components/VBindCss"
+  }
+}

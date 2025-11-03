@@ -1,0 +1,1 @@
+<view class="hidden text-center">{{a}}，这里可以配置全局的东西 </view><slot/><fg-tabbar wx:if="{{b}}" u-i="126240d3-0" bind:__l="__l"/>

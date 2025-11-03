@@ -4,6 +4,19 @@ import { navigateToInterceptor } from '@/router/interceptor'
 
 onLaunch((options) => {
   console.log('App Launch', options)
+  // 初始化云开发
+  // 方式1：使用默认环境（推荐）
+  wx.cloud.init({
+    traceUser: true
+  })
+  
+  console.log('云开发初始化完成')
+  
+  // 方式2：如果需要指定环境，请替换为你的环境ID
+  // wx.cloud.init({
+  //   env: 'your-env-id', // 在云开发控制台 → 设置中查看
+  //   traceUser: true
+  // })
 })
 onShow((options) => {
   console.log('App Show', options)

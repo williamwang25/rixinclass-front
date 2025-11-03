@@ -1,0 +1,10 @@
+{
+  "navigationStyle": "custom",
+  "navigationBarTitleText": "申请查询",
+  "usingComponents": {
+    "u-icon": "../../node-modules/uview-pro/components/u-icon/u-icon",
+    "u-tag": "../../node-modules/uview-pro/components/u-tag/u-tag",
+    "u-button": "../../node-modules/uview-pro/components/u-button/u-button",
+    "u-popup": "../../node-modules/uview-pro/components/u-popup/u-popup"
+  }
+}

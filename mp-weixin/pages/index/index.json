@@ -1,0 +1,7 @@
+{
+  "navigationStyle": "custom",
+  "navigationBarTitleText": "日新智课",
+  "usingComponents": {
+    "u-icon": "../../node-modules/uview-pro/components/u-icon/u-icon"
+  }
+}

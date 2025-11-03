@@ -1,0 +1,1 @@
+<view hover-stop-propagation style="{{a + ';' + (virtualHostStyle || '')}}" bindtap="{{b}}" catchtouchmove="{{c}}" class="{{['u-mask', 'data-v-db7121f0', d, e, virtualHostClass]}}" hidden="{{virtualHostHidden || false}}" id="{{f}}"><slot/></view>

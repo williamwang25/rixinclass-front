@@ -1,0 +1,6 @@
+{
+  "navigationBarTitleText": "下拉刷新和下拉加载更多",
+  "enablePullDownRefresh": true,
+  "onReachBottomDistance": 100,
+  "usingComponents": {}
+}

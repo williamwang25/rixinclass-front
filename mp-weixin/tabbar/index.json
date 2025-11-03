@@ -1,0 +1,6 @@
+{
+  "component": true,
+  "usingComponents": {
+    "u-icon": "../node-modules/uview-pro/components/u-icon/u-icon"
+  }
+}

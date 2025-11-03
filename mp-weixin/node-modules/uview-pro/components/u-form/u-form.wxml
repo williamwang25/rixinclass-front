@@ -1,0 +1,1 @@
+<view class="{{['u-form', 'data-v-c53c6302', a, virtualHostClass]}}" style="{{b + ';' + (virtualHostStyle || '')}}" hidden="{{virtualHostHidden || false}}" id="{{c}}"><slot/></view>

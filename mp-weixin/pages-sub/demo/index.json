@@ -1,0 +1,6 @@
+{
+  "navigationBarTitleText": "分包页面",
+  "usingComponents": {
+    "request-comp": "./components/request"
+  }
+}

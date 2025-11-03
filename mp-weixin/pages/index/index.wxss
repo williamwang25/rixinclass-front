@@ -1,0 +1,280 @@
+/* stylelint-disable comment-empty-line-before */
+/**
+ * 这里是uni-app内置的常用样式变量
+ *
+ * uni-app 官方扩展插件及插件市场（https://ext.dcloud.net.cn）上很多三方插件均使用了这些样式变量
+ * 如果你是插件开发者，建议你使用scss预处理，并在插件代码中直接使用这些变量（无需 import 这个文件），方便用户通过搭积木的方式开发整体风格一致的App
+ *
+ */
+/**
+ * 如果你是App开发者（插件使用者），你可以通过修改这些变量来定制自己的插件主题，实现自定义主题功能
+ *
+ * 如果你的项目同样使用了scss预处理，你也可以直接在你的 scss 代码中使用如下变量，同时无需 import 这个文件
+ */
+/* 颜色变量 */
+/* 行为相关颜色 */
+/* 文字基本颜色 */
+/* 背景颜色 */
+/* 边框颜色 */
+/* 尺寸变量 */
+/* 文字尺寸 */
+/* 图片尺寸 */
+/* Border Radius */
+/* 水平间距 */
+/* 垂直间距 */
+/* 透明度 */
+/* 文章场景相关 */
+/* 引入全局 uview-pro scss 变量文件 */
+.page-container.data-v-83a5a03c {
+  min-height: 100vh;
+  background-color: #f5f7fa;
+}
+.top-banner.data-v-83a5a03c {
+  height: 300rpx;
+  background: linear-gradient(to right, #0096c2 0%, #0096c2 50%, #ffffff 100%);
+  position: relative;
+  overflow: hidden;
+}
+.banner-overlay.data-v-83a5a03c {
+  height: 100%;
+  padding: 40rpx 30rpx;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+.banner-content.data-v-83a5a03c {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+.banner-logo.data-v-83a5a03c {
+  width: 100rpx;
+  height: 100rpx;
+  margin-right: 24rpx;
+  background-color: rgba(255, 255, 255, 0.9);
+  border-radius: 200rpx;
+  padding: 5rpx;
+}
+.banner-text.data-v-83a5a03c {
+  display: flex;
+  flex-direction: column;
+}
+.banner-title.data-v-83a5a03c {
+  font-size: 44rpx;
+  font-weight: bold;
+  color: #ffffff;
+  margin-bottom: 8rpx;
+}
+.banner-subtitle.data-v-83a5a03c {
+  font-size: 26rpx;
+  color: rgba(255, 255, 255, 0.9);
+}
+.motto-wrapper.data-v-83a5a03c {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-left: 20rpx;
+}
+.banner-motto.data-v-83a5a03c {
+  width: 280rpx;
+  max-width: 100%;
+}
+.content-section.data-v-83a5a03c {
+  margin-top: 10rpx;
+  padding: 0 30rpx;
+}
+.notice-section.data-v-83a5a03c {
+  background-color: #ffffff;
+  border-radius: 20rpx;
+  padding: 30rpx;
+  box-shadow: 0 8rpx 24rpx rgba(0, 150, 194, 0.12);
+  margin-bottom: 20rpx;
+}
+.section-header-notice.data-v-83a5a03c {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24rpx;
+}
+.section-title-notice.data-v-83a5a03c {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333333;
+}
+.more-link.data-v-83a5a03c {
+  font-size: 24rpx;
+  color: #0096c2;
+}
+.notice-list.data-v-83a5a03c {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+.notice-item.data-v-83a5a03c {
+  display: flex;
+  align-items: flex-start;
+  padding: 20rpx;
+  background-color: #f8fbff;
+  border-radius: 8rpx;
+}
+.notice-item.data-v-83a5a03c:active {
+  background-color: #e6f4f9;
+}
+.notice-dot.data-v-83a5a03c {
+  width: 12rpx;
+  height: 12rpx;
+  background-color: #0096c2;
+  border-radius: 50%;
+  margin-top: 12rpx;
+  margin-right: 16rpx;
+  flex-shrink: 0;
+}
+.notice-content.data-v-83a5a03c {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.notice-title.data-v-83a5a03c {
+  font-size: 28rpx;
+  color: #333333;
+  margin-bottom: 8rpx;
+  line-height: 1.5;
+}
+.notice-time.data-v-83a5a03c {
+  font-size: 22rpx;
+  color: #999999;
+}
+.services-section.data-v-83a5a03c {
+  margin-bottom: 30rpx;
+}
+.section-header.data-v-83a5a03c {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 30rpx;
+}
+.header-line.data-v-83a5a03c {
+  width: 60rpx;
+  height: 4rpx;
+  background-color: #0096c2;
+}
+.section-title.data-v-83a5a03c {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333333;
+  margin: 0 20rpx;
+}
+.services-list.data-v-83a5a03c {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+.service-card.data-v-83a5a03c {
+  background-color: #ffffff;
+  border-radius: 16rpx;
+  padding: 30rpx;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.05);
+}
+.service-card.data-v-83a5a03c:active {
+  transform: scale(0.98);
+  transition: all 0.2s;
+}
+.service-icon.data-v-83a5a03c {
+  width: 88rpx;
+  height: 88rpx;
+  border-radius: 18rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 24rpx;
+  flex-shrink: 0;
+}
+.service-info.data-v-83a5a03c {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.service-title.data-v-83a5a03c {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333333;
+  margin-bottom: 8rpx;
+}
+.service-desc.data-v-83a5a03c {
+  font-size: 26rpx;
+  color: #666666;
+}
+.quick-section.data-v-83a5a03c {
+  margin-bottom: 30rpx;
+}
+.quick-grid.data-v-83a5a03c {
+  background-color: #ffffff;
+  border-radius: 16rpx;
+  padding: 40rpx 20rpx;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 30rpx 0;
+}
+.quick-item.data-v-83a5a03c {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.quick-item.data-v-83a5a03c:active {
+  opacity: 0.7;
+}
+.quick-icon-wrapper.data-v-83a5a03c {
+  width: 88rpx;
+  height: 88rpx;
+  background-color: #e6f7fb;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16rpx;
+}
+.quick-name.data-v-83a5a03c {
+  font-size: 24rpx;
+  color: #333333;
+  text-align: center;
+}
+.school-card.data-v-83a5a03c {
+  background-color: #ffffff;
+  border-radius: 16rpx;
+  padding: 30rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.05);
+}
+.library-image.data-v-83a5a03c {
+  width: 280rpx;
+  margin-bottom: 24rpx;
+  opacity: 0.8;
+}
+.school-info.data-v-83a5a03c {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+.school-name.data-v-83a5a03c {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #0096c2;
+}
+.school-separator.data-v-83a5a03c {
+  font-size: 28rpx;
+  color: #999999;
+  margin: 0 12rpx;
+}
+.school-dept.data-v-83a5a03c {
+  font-size: 26rpx;
+  color: #666666;
+}
+.bottom-space.data-v-83a5a03c {
+  height: 40rpx;
+}
