@@ -4,19 +4,27 @@ import { navigateToInterceptor } from '@/router/interceptor'
 
 onLaunch((options) => {
   console.log('App Launch', options)
-  // 初始化云开发
-  // 方式1：使用默认环境（推荐）
-  wx.cloud.init({
-    traceUser: true
-  })
   
+  // 初始化云开发
+  wx.cloud.init({
+    env: 'cloud1-1gt445eta224436c', // 你的云开发环境ID
+      traceUser: true
+  })
+    
   console.log('云开发初始化完成')
   
-  // 方式2：如果需要指定环境，请替换为你的环境ID
-  // wx.cloud.init({
-  //   env: 'your-env-id', // 在云开发控制台 → 设置中查看
-  //   traceUser: true
-  // })
+  // 初始化云数据库
+  // #ifdef MP-WEIXIN
+  try {
+    const db = wx.cloud.database()
+    globalThis.$db = db
+    globalThis.$_ = db.command // 查询操作符
+    
+    console.log('云数据库初始化完成')
+  } catch (error) {
+    console.error('云数据库初始化失败:', error)
+  }
+  // #endif
 })
 onShow((options) => {
   console.log('App Show', options)

@@ -1,6 +1,9 @@
 <script lang="ts" setup>
-import { computed, ref } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 import { safeAreaInsets } from '@/utils/systemInfo'
+import { getMySchedules } from '@/utils/db'
+import { useUserStore } from '@/store/user'
+import { formatTime } from '@/utils/format'
 
 defineOptions({
   name: 'BookingRecord',
@@ -13,35 +16,90 @@ definePage({
   },
 })
 
-// 历史记录接口
-interface HistoryRecord {
-  id: string
-  courseCode: string
-  courseName: string
-  courseType: string
-  academicYear: string
-  semester: string
-  teacherName: string
-  className: string
-  studentCount: number
-  timeSlots: Array<{
-    weekday: string
-    weekStart: string
-    weekEnd: string
-    periodStart: string
-    periodEnd: string
-  }>
-  laboratory: string
-  applyTime: string
-  completedTime: string
-  softwareRequirements?: string
-  otherRequirements?: string
-  teacherPhone: string
-  teacherEmail: string
+const userStore = useUserStore()
+
+// 历史记录数据
+const historyList = ref<any[]>([])
+const loading = ref(true)
+
+// 加载历史记录
+async function loadHistoryRecords() {
+  loading.value = true
+  
+  try {
+    const userId = userStore.userId
+    if (!userId) {
+      uni.showToast({ title: '请先登录', icon: 'none' })
+      return
+    }
+    
+    const res = await getMySchedules(userId)
+    
+    if (res.success) {
+      // 按照学年学期分组，将schedule数据转换为记录格式
+      const scheduleMap = new Map<number, any[]>()
+      
+      res.data.forEach((schedule: any) => {
+        const bookingId = schedule.booking_id
+        if (!scheduleMap.has(bookingId)) {
+          scheduleMap.set(bookingId, [])
+        }
+        scheduleMap.get(bookingId)!.push(schedule)
+      })
+      
+      // 转换为历史记录格式
+      historyList.value = Array.from(scheduleMap.entries()).map(([bookingId, schedules]) => {
+        const first = schedules[0]
+        return {
+          id: bookingId,
+          courseCode: first.course_code || '-',
+          courseName: first.course_name,
+          courseType: first.course_type || '实验教学',
+          academicYear: first.academic_year,
+          semester: first.semester,
+          teacherName: first.teacher_name,
+          className: first.class_name || '-',
+          studentCount: first.student_count,
+          timeSlots: schedules.map((s: any) => ({
+            weekday: formatWeekday(s.weekday),
+            weekStart: s.week_start,
+            weekEnd: s.week_end,
+            periodStart: s.period_start,
+            periodEnd: s.period_end
+          })),
+          laboratory: `${first.building} ${first.lab_room}`,
+          applyTime: formatTime(first.create_time, 'YYYY-MM-DD HH:mm'),
+          completedTime: formatTime(first.create_time, 'YYYY-MM-DD'),
+          softwareRequirements: first.software_requirements || '',
+          otherRequirements: first.other_requirements || '',
+          teacherPhone: first.teacher_phone || '',
+          teacherEmail: first.teacher_email || ''
+        }
+      }).sort((a, b) => new Date(b.completedTime).getTime() - new Date(a.completedTime).getTime())
+    }
+  } catch (error) {
+    console.error('加载历史记录失败:', error)
+  } finally {
+    loading.value = false
+  }
 }
 
-// 模拟历史数据
-const historyList = ref<HistoryRecord[]>([
+// 格式化星期
+function formatWeekday(weekday: number) {
+  const weekMap: any = {
+    1: '星期一',
+    2: '星期二',
+    3: '星期三',
+    4: '星期四',
+    5: '星期五',
+    6: '星期六',
+    7: '星期日'
+  }
+  return weekMap[weekday] || '-'
+}
+
+// 保持原有的模拟数据作为备份（删除）
+const _historyListBackup = ref<any[]>([
   {
     id: 'BK202401001',
     courseCode: 'CS101',
@@ -172,6 +230,10 @@ function closeDetail() {
   showDetailModal.value = false
   selectedRecord.value = null
 }
+
+onMounted(() => {
+  loadHistoryRecords()
+})
 </script>
 
 <template>

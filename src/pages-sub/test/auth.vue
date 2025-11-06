@@ -134,6 +134,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import { login, getUserInfo as getUserInfoFromDB } from '@/utils/db'
 
 // 响应式数据
 const loginResult = ref<any>(null)
@@ -141,7 +142,7 @@ const userInfoResult = ref<any>(null)
 const testUserId = ref<string>('')
 
 /**
- * 测试登录功能
+ * 测试登录功能 - 使用云数据库
  */
 const testLogin = async () => {
   try {
@@ -154,35 +155,32 @@ const testLogin = async () => {
     
     console.log('[TEST] 微信用户信息:', userInfo)
     
-    // 调用登录云函数
-    const res = await wx.cloud.callFunction({
-      name: 'login',
-      data: {
-        nickName: userInfo.userInfo.nickName,
-        avatarUrl: userInfo.userInfo.avatarUrl
-      }
-    }) as any
+    // 调用登录函数
+    const res = await login(
+      userInfo.userInfo.nickName,
+      userInfo.userInfo.avatarUrl
+    )
     
     uni.hideLoading()
     
     console.log('[TEST] 登录结果:', res)
-    loginResult.value = res.result
+    loginResult.value = res
     
-    if (res.result.success) {
+    if (res.success) {
       // 保存用户信息
-      uni.setStorageSync('userInfo', res.result.data)
+      uni.setStorageSync('userInfo', res.data)
       
       // 自动填充用户ID
-      testUserId.value = res.result.data.userId.toString()
+      testUserId.value = res.data.userId.toString()
       
       uni.showToast({
-        title: res.result.data.isNewUser ? '注册成功！' : '登录成功！',
+        title: res.data.isNewUser ? '注册成功！' : '登录成功！',
         icon: 'success'
       })
     }
     else {
       uni.showToast({
-        title: res.result.message,
+        title: res.message,
         icon: 'none',
         duration: 3000
       })
@@ -206,7 +204,7 @@ const testLogin = async () => {
 }
 
 /**
- * 测试获取用户信息
+ * 测试获取用户信息 - 使用云数据库
  */
 const testGetUserInfo = async () => {
   if (!testUserId.value) {
@@ -220,19 +218,15 @@ const testGetUserInfo = async () => {
   try {
     uni.showLoading({ title: '查询中...' })
     
-    const res = await wx.cloud.callFunction({
-      name: 'getUserInfo',
-      data: {
-        userId: Number.parseInt(testUserId.value)
-      }
-    }) as any
+    // 直接调用 MySQL 查询
+    const res = await getUserInfoFromDB(Number.parseInt(testUserId.value))
     
     uni.hideLoading()
     
     console.log('[TEST] 用户信息结果:', res)
-    userInfoResult.value = res.result
+    userInfoResult.value = res
     
-    if (res.result.success) {
+    if (res.success) {
       uni.showToast({
         title: '查询成功',
         icon: 'success'
@@ -240,7 +234,7 @@ const testGetUserInfo = async () => {
     }
     else {
       uni.showToast({
-        title: res.result.message,
+        title: res.message,
         icon: 'none',
         duration: 3000
       })

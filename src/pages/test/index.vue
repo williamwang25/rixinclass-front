@@ -40,7 +40,7 @@
           <text class="section-title">实验室模块</text>
         </view>
         <view class="test-cards">
-          <view class="test-card disabled">
+          <view class="test-card" @click="navigateTo('/pages-sub/test/lab')">
             <view class="card-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
               <text class="icon-text">🏫</text>
             </view>
@@ -48,8 +48,8 @@
               <text class="card-title">实验室管理测试</text>
               <text class="card-desc">测试实验室列表、详情查询</text>
             </view>
-            <view class="disabled-tag">
-              <text class="disabled-text">开发中</text>
+            <view class="card-arrow">
+              <u-icon name="arrow-right" size="20" color="#999" />
             </view>
           </view>
         </view>
@@ -62,7 +62,7 @@
           <text class="section-title">排课申请模块</text>
         </view>
         <view class="test-cards">
-          <view class="test-card disabled">
+          <view class="test-card" @click="navigateTo('/pages-sub/test/booking')">
             <view class="card-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
               <text class="icon-text">📝</text>
             </view>
@@ -70,8 +70,8 @@
               <text class="card-title">申请提交测试</text>
               <text class="card-desc">测试创建申请、查询申请</text>
             </view>
-            <view class="disabled-tag">
-              <text class="disabled-text">待开发</text>
+            <view class="card-arrow">
+              <u-icon name="arrow-right" size="20" color="#999" />
             </view>
           </view>
         </view>
@@ -151,11 +151,11 @@
       <view class="progress-section">
         <text class="progress-title">📊 开发进度</text>
         <view class="progress-bar">
-          <view class="progress-fill" :style="{ width: '20%' }">
-            <text class="progress-text">20%</text>
+          <view class="progress-fill" :style="{ width: '60%' }">
+            <text class="progress-text">60%</text>
           </view>
         </view>
-        <text class="progress-desc">已完成 1/5 个阶段</text>
+        <text class="progress-desc">已完成 3/5 个阶段</text>
       </view>
     </view>
   </view>

@@ -27,6 +27,8 @@ import ViteRestart from 'vite-plugin-restart'
 import openDevTools from './scripts/open-dev-tools'
 import { createCopyNativeResourcesPlugin } from './vite-plugins/copy-native-resources'
 import syncManifestPlugin from './vite-plugins/sync-manifest-plugins'
+import { copyCloudfunctions } from './vite-plugins/copy-cloudfunctions'
+import { setupMiniprogramNpm } from './vite-plugins/setup-miniprogram-npm'
 
 // https://vitejs.dev/config/
 export default defineConfig(({ command, mode }) => {
@@ -137,6 +139,10 @@ export default defineConfig(({ command, mode }) => {
         },
       ),
       syncManifestPlugin(),
+      // 微信小程序：自动复制云函数
+      UNI_PLATFORM === 'mp-weixin' && copyCloudfunctions(),
+      // 微信小程序：自动设置 npm 包
+      UNI_PLATFORM === 'mp-weixin' && setupMiniprogramNpm(),
       Components({
         extensions: ['vue'],
         deep: true, // 是否递归扫描子目录，

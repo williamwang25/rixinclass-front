@@ -1,0 +1,10 @@
+{
+  "name": "getMyBookings",
+  "version": "1.0.0",
+  "description": "获取我的申请列表",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "latest"
+  }
+}
+

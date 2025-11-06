@@ -46,6 +46,7 @@
     "dev:mp": "uni -p mp-weixin",
     "dev:mp:test": "uni -p mp-weixin --mode test",
     "dev:mp:prod": "uni -p mp-weixin --mode production",
+    "setup:mp": "node scripts/setup-mp-npm.js",
     "dev:mp-alipay": "uni -p mp-alipay",
     "dev:mp-baidu": "uni -p mp-baidu",
     "dev:mp-jd": "uni -p mp-jd",

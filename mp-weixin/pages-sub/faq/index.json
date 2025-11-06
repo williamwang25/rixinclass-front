@@ -1,8 +1,0 @@
-{
-  "navigationStyle": "custom",
-  "navigationBarTitleText": "常见问题",
-  "usingComponents": {
-    "u-icon": "../../node-modules/uview-pro/components/u-icon/u-icon",
-    "u-button": "../../node-modules/uview-pro/components/u-button/u-button"
-  }
-}

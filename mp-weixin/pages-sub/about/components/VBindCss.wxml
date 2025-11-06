@@ -1,1 +1,0 @@
-<button class="mt-4 w-60 text-center data-v-42f8188b" bindtap="{{a}}" style="{{b}}"> toggle v-bind css变量 </button><view class="test-css my-2 text-center data-v-42f8188b" style="{{c}}"> 测试v-bind css变量的具体文案 </view>

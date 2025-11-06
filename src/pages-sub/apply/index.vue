@@ -255,7 +255,7 @@ function goToSignature() {
 }
 
 // 提交表单
-function submitForm() {
+async function submitForm() {
   // 检查实验时间
   if (timeSlots.value.length === 0) {
     uni.showToast({
@@ -278,27 +278,82 @@ function submitForm() {
     return
   }
 
-  formRef.value?.validate((valid: boolean) => {
+  formRef.value?.validate(async (valid: boolean) => {
     if (valid) {
-      // 提交结构化的时间数据，便于数据库存储
-      const submitData = {
-        ...formData,
-        timeSlots: timeSlots.value,
-      }
-
       uni.showModal({
         title: '提示',
         content: '确认提交排课申请吗？',
-        success: (res) => {
+        success: async (res) => {
           if (res.confirm) {
-            console.log('提交数据：', submitData)
-            uni.showToast({
-              title: '提交成功',
-              icon: 'success',
-            })
-            setTimeout(() => {
-              uni.navigateBack()
-            }, 1500)
+            try {
+              uni.showLoading({ title: '提交中...' })
+              
+              // 获取用户信息
+              const storedUserInfo = uni.getStorageSync('userInfo')
+              if (!storedUserInfo || !storedUserInfo.userId) {
+                throw new Error('请先登录')
+              }
+              
+              // 转换时间段格式
+              const formattedTimeSlots = timeSlots.value.map(slot => ({
+                weekday: weekdayOptions.indexOf(slot.weekday) + 1, // 转为数字 1-7
+                weekStart: Number(slot.weekStart),
+                weekEnd: Number(slot.weekEnd),
+                periodStart: Number(slot.periodStart),
+                periodEnd: Number(slot.periodEnd)
+              }))
+              
+              // 调用云函数提交申请
+              const result = await wx.cloud.callFunction({
+                name: 'createBooking',
+                data: {
+                  userId: storedUserInfo.userId,
+                  academicYear: formData.academicYear,
+                  semester: formData.semester,
+                  courseCode: formData.courseCode,
+                  courseType: formData.courseType,
+                  courseName: formData.courseName,
+                  requiredHours: Number(formData.requiredHours),
+                  bookingHours: Number(formData.bookingHours),
+                  className: formData.className,
+                  studentCount: Number(formData.studentCount),
+                  timeSlots: formattedTimeSlots,
+                  softwareRequirements: formData.softwareRequirements,
+                  otherRequirements: formData.otherRequirements,
+                  teacherName: formData.teacherName,
+                  teacherPhone: formData.teacherPhone,
+                  teacherEmail: formData.teacherEmail,
+                  teacherSignature: formData.teacherSignature
+                }
+              }) as any
+              
+              uni.hideLoading()
+              
+              if (result.result && result.result.success) {
+                console.log('提交成功:', result.result)
+                uni.showModal({
+                  title: '提交成功',
+                  content: `申请编号：${result.result.data.bookingNo}\n\n请等待管理员审核`,
+                  showCancel: false,
+                  success: () => {
+                    setTimeout(() => {
+                      uni.navigateBack()
+                    }, 500)
+                  }
+                })
+              } else {
+                throw new Error(result.result?.message || '提交失败')
+              }
+              
+            } catch (error: any) {
+              uni.hideLoading()
+              console.error('提交失败:', error)
+              uni.showModal({
+                title: '提交失败',
+                content: error.message || '未知错误',
+                showCancel: false
+              })
+            }
           }
         },
       })

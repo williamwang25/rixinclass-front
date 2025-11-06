@@ -1,8 +1,0 @@
-{
-  "navigationBarTitleText": "通知中心",
-  "navigationBarBackgroundColor": "#0096C2",
-  "navigationBarTextStyle": "white",
-  "usingComponents": {
-    "u-icon": "../../node-modules/uview-pro/components/u-icon/u-icon"
-  }
-}

@@ -1,0 +1,10 @@
+{
+  "name": "createBooking",
+  "version": "1.0.0",
+  "description": "创建排课申请",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "latest"
+  }
+}
+

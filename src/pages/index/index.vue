@@ -1,5 +1,7 @@
 <script lang="ts" setup>
+import { ref, onMounted } from 'vue'
 import { safeAreaInsets } from '@/utils/systemInfo'
+import { getNoticeList } from '@/utils/db'
 
 defineOptions({
   name: 'HomeStyle3',
@@ -39,10 +41,38 @@ const services = [
 ]
 
 // 通知公告
-const notices = [
-  { title: '关于2024-2025学年第二学期实验室排课的通知', time: '2024-10-08' },
-  { title: '实验室设备维护通知', time: '2024-10-05' },
-]
+const notices = ref<any[]>([])
+const loadingNotices = ref(true)
+
+// 加载公告
+async function loadNotices() {
+  loadingNotices.value = true
+  try {
+    const res = await getNoticeList()
+    if (res.success) {
+      notices.value = res.data.slice(0, 5)  // 只显示前5条
+    }
+  } catch (error) {
+    console.error('加载公告失败:', error)
+    // 使用默认数据
+    notices.value = [
+      { title: '关于2024-2025学年第二学期实验室排课的通知', create_time: '2024-10-08' },
+      { title: '实验室设备维护通知', create_time: '2024-10-05' },
+    ]
+  } finally {
+    loadingNotices.value = false
+  }
+}
+
+// 查看公告详情
+function viewNotice(notice: any) {
+  uni.showModal({
+    title: notice.title,
+    content: notice.content || '暂无详细内容',
+    showCancel: false,
+    confirmText: '知道了'
+  })
+}
 
 // 常用功能
 const quickActions = [
@@ -61,6 +91,10 @@ function navigateTo(url: string) {
     uni.showToast({ title: '功能开发中', icon: 'none' })
   }
 }
+
+onMounted(() => {
+  loadNotices()
+})
 </script>
 
 <template>
@@ -86,21 +120,27 @@ function navigateTo(url: string) {
       <view class="notice-section">
         <view class="section-header-notice">
           <text class="section-title-notice">通知公告</text>
-          <text class="more-link" @click="navigateTo('')">更多 ></text>
+          <text class="more-link" @click="navigateTo('/pages/notice/index')">更多 ></text>
         </view>
-        <view class="notice-list">
+        <view v-if="loadingNotices" class="loading-wrapper">
+          <text>加载中...</text>
+        </view>
+        <view v-else-if="notices.length > 0" class="notice-list">
           <view
-            v-for="(item, index) in notices"
-            :key="index"
+            v-for="notice in notices"
+            :key="notice.notice_id"
             class="notice-item"
-            @click="navigateTo('')"
+            @click="viewNotice(notice)"
           >
-            <view class="notice-dot" />
+            <view class="notice-dot" :class="{ important: notice.priority === 1 }" />
             <view class="notice-content">
-              <text class="notice-title">{{ item.title }}</text>
-              <text class="notice-time">{{ item.time }}</text>
+              <text class="notice-title">{{ notice.title }}</text>
+              <text class="notice-time">{{ notice.create_time ? new Date(notice.create_time).toLocaleDateString('zh-CN') : '' }}</text>
             </view>
           </view>
+        </view>
+        <view v-else class="empty-notice">
+          <text>暂无公告</text>
         </view>
       </view>
 
@@ -295,6 +335,17 @@ function navigateTo(url: string) {
   margin-top: 12rpx;
   margin-right: 16rpx;
   flex-shrink: 0;
+  
+  &.important {
+    background-color: #f56c6c;
+  }
+}
+
+.loading-wrapper, .empty-notice {
+  padding: 40rpx;
+  text-align: center;
+  color: #999;
+  font-size: 26rpx;
 }
 
 .notice-content {

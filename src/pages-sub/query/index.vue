@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { safeAreaInsets } from '@/utils/systemInfo'
 
 defineOptions({
@@ -53,106 +53,99 @@ interface BookingRecord {
   teacherSignature?: string
 }
 
-// 模拟数据
-const bookingList = ref<BookingRecord[]>([
-  {
-    id: 'BK202501001',
-    courseCode: 'CS101',
-    courseName: '计算机图形学实验',
-    courseType: '实验教学',
-    academicYear: '2024-2025',
-    semester: '第一学期',
-    teacherName: '张教师',
-    status: BookingStatus.REJECTED,
-    statusText: '已拒绝',
-    applyTime: '2025-01-15 10:30:00',
-    auditTime: '2025-01-16 14:20:00',
-    rejectReason: '申请时间段与其他课程冲突，请重新选择时间',
-    requiredHours: 32,
-    bookingHours: 32,
-    className: '计算机2201-2202',
-    studentCount: 60,
-    timeSlots: [
-      {
-        weekday: '星期一',
-        weekStart: '1',
-        weekEnd: '16',
-        periodStart: '3',
-        periodEnd: '4',
-      },
-    ],
-    softwareRequirements: 'Adobe Photoshop 2020, AutoCAD 2021',
-    otherRequirements: '需要高配置显卡的电脑',
-    teacherPhone: '13800138000',
-    teacherEmail: 'zhang@bjut.edu.cn',
-    teacherSignature: '',
-  },
-  {
-    id: 'BK202501002',
-    courseCode: 'CS202',
-    courseName: '数据结构课程设计',
-    courseType: '实验作业',
-    academicYear: '2024-2025',
-    semester: '第一学期',
-    teacherName: '张教师',
-    status: BookingStatus.APPROVED,
-    statusText: '已通过',
-    applyTime: '2025-01-10 09:15:00',
-    auditTime: '2025-01-11 11:30:00',
-    requiredHours: 16,
-    bookingHours: 16,
-    className: '计算机2203',
-    studentCount: 30,
-    timeSlots: [
-      {
-        weekday: '星期三',
-        weekStart: '1',
-        weekEnd: '8',
-        periodStart: '5',
-        periodEnd: '6',
-      },
-    ],
-    softwareRequirements: 'Visual Studio Code, GCC编译器',
-    teacherPhone: '13800138000',
-    teacherEmail: 'zhang@bjut.edu.cn',
-  },
-  {
-    id: 'BK202501003',
-    courseCode: 'CS303',
-    courseName: 'Web前端开发实训',
-    courseType: '工作实习',
-    academicYear: '2024-2025',
-    semester: '第一学期',
-    teacherName: '张教师',
-    status: BookingStatus.PENDING,
-    statusText: '待审核',
-    applyTime: '2025-01-17 14:20:00',
-    requiredHours: 24,
-    bookingHours: 24,
-    className: '软件工程2201',
-    studentCount: 45,
-    timeSlots: [
-      {
-        weekday: '星期五',
-        weekStart: '1',
-        weekEnd: '12',
-        periodStart: '1',
-        periodEnd: '2',
-      },
-      {
-        weekday: '星期五',
-        weekStart: '1',
-        weekEnd: '12',
-        periodStart: '3',
-        periodEnd: '4',
-      },
-    ],
-    softwareRequirements: 'Visual Studio Code, Node.js, Chrome浏览器',
-    otherRequirements: '需要外网访问权限',
-    teacherPhone: '13800138000',
-    teacherEmail: 'zhang@bjut.edu.cn',
-  },
-])
+// 申请列表数据
+const bookingList = ref<BookingRecord[]>([])
+const loading = ref(false)
+
+// 星期数字转文本
+const weekdayMap = ['', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六', '星期日']
+
+// 加载申请列表
+async function loadBookings() {
+  try {
+    loading.value = true
+    
+    // 获取用户信息
+    const userInfo = uni.getStorageSync('userInfo')
+    if (!userInfo || !userInfo.userId) {
+      uni.showToast({
+        title: '请先登录',
+        icon: 'none'
+      })
+      return
+    }
+    
+    // 调用云函数获取申请列表
+    const res = await wx.cloud.callFunction({
+      name: 'getMyBookings',
+      data: {
+        userId: userInfo.userId,
+        pageNum: 1,
+        pageSize: 100
+      }
+    }) as any
+    
+    if (res.result && res.result.success) {
+      // 转换数据格式
+      bookingList.value = res.result.data.map((item: any) => ({
+        id: item.booking_no,
+        courseCode: item.course_code,
+        courseName: item.course_name,
+        courseType: item.course_type,
+        academicYear: item.academic_year,
+        semester: item.semester,
+        teacherName: item.teacher_name,
+        status: ['pending', 'approved', 'rejected', 'cancelled'][item.status] || 'pending',
+        statusText: ['待审核', '已通过', '已拒绝', '已取消'][item.status] || '待审核',
+        applyTime: formatTime(item.create_time),
+        auditTime: item.review_time ? formatTime(item.review_time) : undefined,
+        rejectReason: item.review_remark,
+        requiredHours: item.required_hours,
+        bookingHours: item.booking_hours,
+        className: item.class_name,
+        studentCount: item.student_count,
+        timeSlots: (item.time_slots || []).map((slot: any) => ({
+          weekday: weekdayMap[slot.weekday] || `星期${slot.weekday}`,
+          weekStart: slot.weekStart?.toString() || slot.week_start?.toString(),
+          weekEnd: slot.weekEnd?.toString() || slot.week_end?.toString(),
+          periodStart: slot.periodStart?.toString() || slot.period_start?.toString(),
+          periodEnd: slot.periodEnd?.toString() || slot.period_end?.toString()
+        })),
+        softwareRequirements: item.software_requirements,
+        otherRequirements: item.other_requirements,
+        teacherPhone: item.teacher_phone,
+        teacherEmail: item.teacher_email,
+        teacherSignature: item.teacher_signature
+      }))
+      
+      updateTabCounts()
+      console.log('[QUERY] 加载成功，共', bookingList.value.length, '条申请')
+    } else {
+      throw new Error(res.result?.message || '加载失败')
+    }
+  } catch (error: any) {
+    console.error('[QUERY] 加载失败:', error)
+    uni.showToast({
+      title: error.message || '加载失败',
+      icon: 'none'
+    })
+  } finally {
+    loading.value = false
+  }
+}
+
+// 格式化时间
+function formatTime(time: any) {
+  if (!time) return ''
+  const date = new Date(time)
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  const hour = String(date.getHours()).padStart(2, '0')
+  const minute = String(date.getMinutes()).padStart(2, '0')
+  const second = String(date.getSeconds()).padStart(2, '0')
+  return `${year}-${month}-${day} ${hour}:${minute}:${second}`
+}
 
 // 当前选中的申请详情
 const selectedBooking = ref<BookingRecord | null>(null)
@@ -260,6 +253,11 @@ function closeDetail() {
   showDetailModal.value = false
   selectedBooking.value = null
 }
+
+// 页面加载时获取数据
+onMounted(() => {
+  loadBookings()
+})
 </script>
 
 <template>

@@ -1,0 +1,7 @@
+{"config_id":1,"config_key":"current_academic_year","config_value":"2025-2026","config_type":"system","description":"当前学年","create_time":"2025-11-03T08:00:00.000Z","create_user":null,"update_time":"2025-11-03T08:00:00.000Z","update_user":null}
+{"config_id":2,"config_key":"current_semester","config_value":"第一学期","config_type":"system","description":"当前学期","create_time":"2025-11-03T08:00:00.000Z","create_user":null,"update_time":"2025-11-03T08:00:00.000Z","update_user":null}
+{"config_id":3,"config_key":"booking_start_date","config_value":"2025-09-01","config_type":"system","description":"申请开始日期","create_time":"2025-11-03T08:00:00.000Z","create_user":null,"update_time":"2025-11-03T08:00:00.000Z","update_user":null}
+{"config_id":4,"config_key":"booking_end_date","config_value":"2025-09-30","config_type":"system","description":"申请截止日期","create_time":"2025-11-03T08:00:00.000Z","create_user":null,"update_time":"2025-11-03T08:00:00.000Z","update_user":null}
+{"config_id":5,"config_key":"max_weeks","config_value":"20","config_type":"system","description":"最大教学周数","create_time":"2025-11-03T08:00:00.000Z","create_user":null,"update_time":"2025-11-03T08:00:00.000Z","update_user":null}
+{"config_id":6,"config_key":"max_periods_per_day","config_value":"12","config_type":"system","description":"每天最大节次数","create_time":"2025-11-03T08:00:00.000Z","create_user":null,"update_time":"2025-11-03T08:00:00.000Z","update_user":null}
+

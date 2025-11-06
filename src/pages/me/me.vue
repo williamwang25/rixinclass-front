@@ -1,11 +1,12 @@
 <script lang="ts" setup>
 import type { IUploadSuccessInfo } from '@/api/types/login'
 import { storeToRefs } from 'pinia'
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { LOGIN_PAGE } from '@/router/config'
 import { useUserStore } from '@/store'
 import { useTokenStore } from '@/store/token'
 import { useUpload } from '@/utils/uploadFile'
+import { getMyBookings } from '@/utils/db'
 
 definePage({
   style: {
@@ -26,6 +27,33 @@ const userStore = useUserStore()
 const tokenStore = useTokenStore()
 // 使用storeToRefs解构userInfo
 const { userInfo } = storeToRefs(userStore)
+
+// 统计数据
+const stats = ref({
+  pending: 0,    // 待审核
+  approved: 0,   // 已通过
+  rejected: 0,   // 已拒绝
+  scheduled: 0   // 已排课
+})
+
+// 加载统计数据
+async function loadStats() {
+  try {
+    const userId = userStore.userId
+    if (!userId) return
+    
+    const res = await getMyBookings({ userId })
+    if (res.success && res.data) {
+      const bookings = res.data
+      stats.value.pending = bookings.filter((b: any) => b.status === 0).length
+      stats.value.approved = bookings.filter((b: any) => b.status === 1).length
+      stats.value.rejected = bookings.filter((b: any) => b.status === 2).length
+      stats.value.scheduled = bookings.filter((b: any) => b.is_scheduled === 1).length
+    }
+  } catch (error) {
+    console.error('加载统计数据失败:', error)
+  }
+}
 
 // 功能菜单
 const menuList = ref([
@@ -175,6 +203,10 @@ const editForm = ref({
   teacherName: '',
   teacherPhone: '',
   teacherEmail: '',
+})
+
+onMounted(() => {
+  loadStats()
 })
 
 function openEditDialog() {
@@ -334,18 +366,18 @@ function saveUserInfo() {
       <!-- 快捷统计 -->
       <view v-if="tokenStore.hasLogin" class="stats-card">
         <view class="stat-item">
-          <text class="stat-value">3</text>
+          <text class="stat-value">{{ stats.pending }}</text>
           <text class="stat-label">待审核</text>
         </view>
         <view class="stat-divider" />
         <view class="stat-item">
-          <text class="stat-value">8</text>
+          <text class="stat-value">{{ stats.approved }}</text>
           <text class="stat-label">已通过</text>
         </view>
         <view class="stat-divider" />
         <view class="stat-item">
-          <text class="stat-value">15</text>
-          <text class="stat-label">历史记录</text>
+          <text class="stat-value">{{ stats.scheduled }}</text>
+          <text class="stat-label">已排课</text>
         </view>
       </view>
 
