@@ -88,10 +88,29 @@ export const useTokenStore = defineStore(
      * 登录成功后处理逻辑
      * @param tokenInfo 登录返回的token信息
      */
-    async function _postLogin(tokenInfo: IAuthLoginRes) {
-      setTokenInfo(tokenInfo)
+    async function _postLogin(loginData: any) {
+      // 保存token信息（云开发登录使用userId作为token）
+      setTokenInfo({
+        token: String(loginData.userId || 'wx-login'),
+        expiresIn: Date.now() + 7 * 24 * 60 * 60 * 1000  // 7天
+      })
+      
+      // 保存用户信息
       const userStore = useUserStore()
-      await userStore.fetchUserInfo()
+      userStore.setUserId(loginData.userId)
+      userStore.setUserInfo({
+        userId: loginData.userId,
+        username: loginData.nickName,
+        avatar: loginData.avatar,
+        teacherName: loginData.name,
+        teacherPhone: loginData.phone,
+        teacherEmail: loginData.email
+      })
+      
+      console.log('[_postLogin] 用户信息已保存:', {
+        userId: loginData.userId,
+        nickName: loginData.nickName
+      })
     }
 
     /**
@@ -124,28 +143,49 @@ export const useTokenStore = defineStore(
 
     /**
      * 微信登录
-     * 有的时候后端会用一个接口返回token和用户信息，有的时候会分开2个接口，一个获取token，一个获取用户信息
-     * （各有利弊，看业务场景和系统复杂度），这里使用2个接口返回的来模拟
+     * 使用云开发登录，调用login云函数
      * @returns 登录结果
      */
     const wxLogin = async () => {
       try {
-        // 获取微信小程序登录的code
-        const code = await getWxCode()
-        console.log('微信登录-code: ', code)
-        const res = await _wxLogin(code)
-        console.log('微信登录-res: ', res)
-        await _postLogin(res)
+        // 获取微信用户信息
+        const userProfile = await uni.getUserProfile({
+          desc: '用于完善用户资料'
+        })
+        
+        console.log('[wxLogin] 用户信息:', userProfile)
+        
+        const { nickName, avatarUrl } = userProfile.userInfo
+        
+        // 调用login云函数
+        const res = await wx.cloud.callFunction({
+          name: 'login',
+          data: {
+            nickName,
+            avatarUrl
+          }
+        })
+        
+        console.log('[wxLogin] 云函数返回:', res)
+        
+        if (!res.result || !res.result.success) {
+          throw new Error(res.result?.message || '登录失败')
+        }
+        
+        // 保存用户信息
+        await _postLogin(res.result.data)
+        
         uni.showToast({
           title: '登录成功',
           icon: 'success',
         })
-        return res
+        
+        return res.result.data
       }
       catch (error) {
-        console.error('微信登录失败:', error)
+        console.error('[wxLogin] 登录失败:', error)
         uni.showToast({
-          title: '微信登录失败，请重试',
+          title: '登录失败，请重试',
           icon: 'error',
         })
         throw error

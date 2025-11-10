@@ -1,6 +1,6 @@
 import type { IUserInfoRes } from '@/api/types/login'
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import {
   getUserInfo,
 } from '@/api/login'
@@ -32,6 +32,15 @@ export const useUserStore = defineStore(
       console.log('设置用户头像', avatar)
       console.log('userInfo', userInfo.value)
     }
+    
+    // 设置用户ID
+    const setUserId = (userId: number) => {
+      userInfo.value.userId = userId
+    }
+    
+    // 获取用户ID
+    const userId = computed(() => userInfo.value.userId)
+    
     // 删除用户信息
     const clearUserInfo = () => {
       userInfo.value = { ...userInfoState }
@@ -49,10 +58,12 @@ export const useUserStore = defineStore(
 
     return {
       userInfo,
+      userId,
       clearUserInfo,
       fetchUserInfo,
       setUserInfo,
       setUserAvatar,
+      setUserId,
     }
   },
   {

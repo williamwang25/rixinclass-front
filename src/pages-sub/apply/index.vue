@@ -289,8 +289,10 @@ async function submitForm() {
               uni.showLoading({ title: '提交中...' })
               
               // 获取用户信息
-              const storedUserInfo = uni.getStorageSync('userInfo')
-              if (!storedUserInfo || !storedUserInfo.userId) {
+              const userStore = useUserStore()
+              const userId = userStore.userId
+              
+              if (!userId || userId <= 0) {
                 throw new Error('请先登录')
               }
               
@@ -307,7 +309,7 @@ async function submitForm() {
               const result = await wx.cloud.callFunction({
                 name: 'createBooking',
                 data: {
-                  userId: storedUserInfo.userId,
+                  userId: userId,
                   academicYear: formData.academicYear,
                   semester: formData.semester,
                   courseCode: formData.courseCode,

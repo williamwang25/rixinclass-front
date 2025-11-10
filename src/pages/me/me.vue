@@ -200,6 +200,7 @@ function navigateTo(url: string) {
 // 编辑个人信息
 const showEditDialog = ref(false)
 const editForm = ref({
+  nickName: '',
   teacherName: '',
   teacherPhone: '',
   teacherEmail: '',
@@ -211,6 +212,7 @@ onMounted(() => {
 
 function openEditDialog() {
   editForm.value = {
+    nickName: userInfo.value.username || '',
     teacherName: userInfo.value.teacherName || '',
     teacherPhone: userInfo.value.teacherPhone || '',
     teacherEmail: userInfo.value.teacherEmail || '',
@@ -218,8 +220,12 @@ function openEditDialog() {
   showEditDialog.value = true
 }
 
-function saveUserInfo() {
+async function saveUserInfo() {
   // 验证
+  if (!editForm.value.nickName || !editForm.value.nickName.trim()) {
+    uni.showToast({ title: '请填写昵称', icon: 'none' })
+    return
+  }
   if (!editForm.value.teacherName) {
     uni.showToast({ title: '请填写姓名', icon: 'none' })
     return
@@ -241,16 +247,44 @@ function saveUserInfo() {
     }
   }
 
-  // 保存
-  userStore.setUserInfo({
-    ...userInfo.value,
-    teacherName: editForm.value.teacherName,
-    teacherPhone: editForm.value.teacherPhone,
-    teacherEmail: editForm.value.teacherEmail,
-  })
+  try {
+    uni.showLoading({ title: '保存中...' })
+    
+    // 调用云函数更新数据库
+    const res = await wx.cloud.callFunction({
+      name: 'updateUserInfo',
+      data: {
+        userId: userStore.userId,
+        nickName: editForm.value.nickName,
+        name: editForm.value.teacherName,
+        phone: editForm.value.teacherPhone,
+        email: editForm.value.teacherEmail || null
+      }
+    })
+    
+    console.log('[saveUserInfo] 云函数返回:', res)
+    
+    if (!res.result || !res.result.success) {
+      throw new Error(res.result?.message || '保存失败')
+    }
+    
+    // 保存到本地 store
+    userStore.setUserInfo({
+      ...userInfo.value,
+      username: editForm.value.nickName,
+      teacherName: editForm.value.teacherName,
+      teacherPhone: editForm.value.teacherPhone,
+      teacherEmail: editForm.value.teacherEmail,
+    })
 
-  showEditDialog.value = false
-  uni.showToast({ title: '保存成功', icon: 'success' })
+    showEditDialog.value = false
+    uni.hideLoading()
+    uni.showToast({ title: '保存成功', icon: 'success' })
+  } catch (error) {
+    console.error('[saveUserInfo] 保存失败:', error)
+    uni.hideLoading()
+    uni.showToast({ title: '保存失败: ' + error.message, icon: 'none' })
+  }
 }
 </script>
 
@@ -434,6 +468,12 @@ function saveUserInfo() {
           编辑个人信息
         </view>
         <view class="dialog-content">
+          <view class="form-item">
+            <view class="form-label">
+              <text class="required">*</text>昵称
+            </view>
+            <input v-model="editForm.nickName" class="form-input" placeholder="请输入昵称">
+          </view>
           <view class="form-item">
             <view class="form-label">
               <text class="required">*</text>姓名

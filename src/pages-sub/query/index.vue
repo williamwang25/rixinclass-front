@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { computed, onMounted, ref } from 'vue'
 import { safeAreaInsets } from '@/utils/systemInfo'
+import { useUserStore } from '@/store/user'
 
 defineOptions({
   name: 'BookingQuery',
@@ -66,8 +67,10 @@ async function loadBookings() {
     loading.value = true
     
     // 获取用户信息
-    const userInfo = uni.getStorageSync('userInfo')
-    if (!userInfo || !userInfo.userId) {
+    const userStore = useUserStore()
+    const userId = userStore.userId
+    
+    if (!userId || userId <= 0) {
       uni.showToast({
         title: '请先登录',
         icon: 'none'
@@ -79,7 +82,7 @@ async function loadBookings() {
     const res = await wx.cloud.callFunction({
       name: 'getMyBookings',
       data: {
-        userId: userInfo.userId,
+        userId: userId,
         pageNum: 1,
         pageSize: 100
       }

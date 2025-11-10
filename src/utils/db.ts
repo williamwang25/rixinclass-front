@@ -362,3 +362,36 @@ export async function getMySchedules(userId: number, academicYear?: string, seme
   }
 }
 
+/**
+ * 更新用户信息
+ * @param userId 用户ID
+ * @param nickName 昵称
+ * @param name 姓名
+ * @param phone 手机号
+ * @param email 邮箱
+ */
+export async function updateUserInfo(userId: number, nickName: string, name: string, phone: string, email?: string) {
+  try {
+    const res = await wx.cloud.callFunction({
+      name: 'updateUserInfo',
+      data: { userId, nickName, name, phone, email }
+    }) as any
+    
+    if (!res.result || !res.result.success) {
+      throw new Error(res.result?.message || '更新失败')
+    }
+    
+    return {
+      success: true,
+      message: '更新成功'
+    }
+  }
+  catch (error: any) {
+    console.error('[UPDATE_USER_INFO] 更新失败:', error)
+    return {
+      success: false,
+      message: error.message || '更新失败'
+    }
+  }
+}
+
