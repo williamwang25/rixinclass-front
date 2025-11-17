@@ -1,0 +1,10 @@
+{
+  "name": "markMessageRead",
+  "version": "1.0.0",
+  "description": "标记消息已读",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "latest"
+  }
+}
+

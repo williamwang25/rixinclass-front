@@ -44,12 +44,6 @@ export const nativeTabbarList: NativeTabBarItem[] = [
     pagePath: 'pages/me/me',
     text: '我的',
   },
-  {
-    iconPath: 'static/tabbar/example.png',
-    selectedIconPath: 'static/tabbar/exampleHL.png',
-    pagePath: 'pages/test/index',
-    text: '测试',
-  },
 ]
 
 // badge 显示一个数字或 小红点（样式可以直接在 tabbar/index.vue 里面修改）
@@ -87,12 +81,6 @@ export const customTabbarList: CustomTabBarItem[] = [
     iconType: 'image',
     icon: '/static/tabbar/personal.png',
     iconActive: '/static/tabbar/personalHL.png',
-  },
-  {
-    text: '测试',
-    pagePath: 'pages/test/index',
-    iconType: 'uiLib',
-    icon: 'setting',
   },
   // 其他类型演示
   // 1、uiLib

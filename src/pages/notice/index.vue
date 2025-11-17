@@ -9,6 +9,8 @@ definePage({
     navigationBarTitleText: '通知中心',
     navigationBarBackgroundColor: '#0096C2',
     navigationBarTextStyle: 'white',
+    backgroundColor: '#f5f7fa',
+    onReachBottomDistance: 50,
   },
 })
 
@@ -26,6 +28,9 @@ const messages = ref<any[]>([])
 const loading = ref(true)
 const unreadCount = ref(0)
 
+// scroll-view 刷新状态
+const refreshing = ref(false)
+
 // 当前筛选（0=未读，1=已读，null=全部）
 const filterRead = ref<number | null>(null)
 
@@ -35,29 +40,53 @@ function switchFilter(isRead: number | null) {
   loadMessages()
 }
 
-// 加载消息
-async function loadMessages() {
+// 加载消息列表
+async function loadMessages(isRefresh = false) {
   loading.value = true
-  
   try {
+    console.log('[通知页] 开始加载消息', { isRefresh })
     const userId = userStore.userId
     if (!userId) {
-      uni.showToast({ title: '请先登录', icon: 'none' })
+      console.log('[通知页] 用户未登录')
+      if (isRefresh) {
+        uni.showToast({
+          title: '请先登录',
+          icon: 'none',
+          duration: 2000
+        })
+      }
       return
     }
     
-    const res = await getMyMessages(userId, filterRead.value === null ? undefined : filterRead.value)
+    const res = await getMyMessages(userId)
+    console.log('[通知页] 消息加载结果:', res)
     
     if (res.success) {
       messages.value = res.data
-      unreadCount.value = res.unreadCount
+      // 统计未读数量
+      unreadCount.value = messages.value.filter((m: any) => m.is_read === 0).length
+      
+      // 刷新成功（不显示提示）
+      if (isRefresh) {
+        console.log('[通知页] 刷新成功')
+      }
     } else {
-      uni.showToast({ title: res.message, icon: 'none' })
+      throw new Error(res.message || '加载失败')
     }
   } catch (error: any) {
-    console.error('加载消息失败:', error)
+    console.error('[通知页] 加载消息失败:', error)
+    
+    // 刷新时显示错误提示
+    if (isRefresh) {
+      uni.showToast({
+        title: error.message || '刷新失败',
+        icon: 'none',
+        duration: 2000
+      })
+    }
   } finally {
     loading.value = false
+    console.log('[通知页] 消息加载完成')
   }
 }
 
@@ -108,6 +137,38 @@ function getMessageIcon(type: string) {
   return iconMap[type] || 'mail'
 }
 
+// scroll-view 滚动事件
+function onScroll(e: any) {
+  console.log('[通知页] scroll-view 滚动:', e.detail)
+}
+
+// scroll-view 下拉刷新
+function onRefresh() {
+  console.log('[通知页] scroll-view 触发下拉刷新')
+  refreshing.value = true
+  
+  loadMessages(true)
+    .then(() => {
+      console.log('[通知页] 刷新数据成功')
+    })
+    .catch((error) => {
+      console.error('[通知页] 刷新数据失败:', error)
+    })
+    .finally(() => {
+      // 延迟停止刷新，确保动画流畅
+      setTimeout(() => {
+        refreshing.value = false
+        console.log('[通知页] 停止刷新动画')
+      }, 300)
+    })
+}
+
+// scroll-view 刷新恢复
+function onRestore() {
+  console.log('[通知页] 刷新恢复')
+  refreshing.value = false
+}
+
 // 格式化消息类型颜色
 function getMessageColor(type: string) {
   const colorMap: any = {
@@ -120,7 +181,7 @@ function getMessageColor(type: string) {
 }
 
 onMounted(() => {
-  loadMessages()
+  loadMessages(false)
 })
 </script>
 
@@ -134,7 +195,17 @@ onMounted(() => {
   </page-meta>
 
   <view class="page-container">
-    <scroll-view scroll-y class="scroll-container">
+    <scroll-view 
+      scroll-y
+      class="scroll-container"
+      :refresher-enabled="true"
+      :refresher-triggered="refreshing"
+      :refresher-threshold="45"
+      refresher-background="#f5f7fa"
+      @refresherrefresh="onRefresh"
+      @refresherrestore="onRestore"
+      @scroll="onScroll"
+    >
       <!-- 筛选栏 -->
       <view class="filter-bar">
         <view class="filter-tabs">
@@ -164,7 +235,7 @@ onMounted(() => {
         </view>
         
         <view v-if="unreadCount > 0" class="mark-all-btn" @click="markAllRead">
-          <text class="i-ri:check-double-line" />
+          <u-icon name="checkmark-done" size="18" color="#0096C2" />
           <text>全部已读</text>
         </view>
       </view>
@@ -183,7 +254,7 @@ onMounted(() => {
           @click="viewDetail(message)"
         >
           <view class="message-icon" :style="{ backgroundColor: `${getMessageColor(message.message_type)}20` }">
-            <text class="i-ri:notification-line" :style="{ color: getMessageColor(message.message_type) }" />
+            <u-icon name="bell" size="18" :color="getMessageColor(message.message_type)" />
           </view>
 
           <view class="message-content">
@@ -201,7 +272,7 @@ onMounted(() => {
 
       <!-- 空状态 -->
       <view v-else class="empty-state">
-        <text class="i-ri:mail-line" style="font-size: 80rpx; color: #ccc;" />
+        <u-icon name="email" size="40" color="#cccccc" />
         <text class="empty-text">暂无消息</text>
       </view>
 
@@ -213,17 +284,16 @@ onMounted(() => {
 
 <style scoped lang="scss">
 .page-container {
-  min-height: 100vh;
+  height: 100vh;
   background-color: #f5f7fa;
   width: 100%;
   box-sizing: border-box;
-  overflow-x: hidden;
+  overflow: hidden;
 }
 
 .scroll-container {
-  height: 100vh;
+  height: 100%;
   width: 100%;
-  box-sizing: border-box;
 }
 
 // 筛选栏
@@ -390,6 +460,6 @@ onMounted(() => {
 }
 
 .safe-area-bottom {
-  height: 40rpx;
+  height: 200rpx;  // 增加高度确保可以滚动
 }
 </style>

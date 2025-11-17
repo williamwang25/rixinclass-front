@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { IUploadSuccessInfo } from '@/api/types/login'
 import { storeToRefs } from 'pinia'
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { LOGIN_PAGE } from '@/router/config'
 import { useUserStore } from '@/store'
 import { useTokenStore } from '@/store/token'
@@ -10,9 +10,9 @@ import { getMyBookings } from '@/utils/db'
 
 definePage({
   style: {
-    navigationBarTitleText: '我的',
-    navigationBarBackgroundColor: '#0096C2',
-    navigationBarTextStyle: 'white',
+    navigationStyle: 'custom',
+    backgroundColor: '#f5f7fa',
+    onReachBottomDistance: 50,
   },
 })
 
@@ -36,22 +36,56 @@ const stats = ref({
   scheduled: 0   // 已排课
 })
 
+// scroll-view 刷新状态
+const refreshing = ref(false)
+
 // 加载统计数据
-async function loadStats() {
+async function loadStats(isRefresh = false) {
   try {
+    console.log('[我的页面] 开始加载统计数据', { isRefresh })
     const userId = userStore.userId
-    if (!userId) return
+    if (!userId) {
+      console.log('[我的页面] 用户未登录')
+      if (isRefresh) {
+        uni.showToast({
+          title: '请先登录',
+          icon: 'none',
+          duration: 2000
+        })
+      }
+      return
+    }
     
     const res = await getMyBookings({ userId })
+    console.log('[我的页面] 统计数据加载结果:', res)
+    
     if (res.success && res.data) {
       const bookings = res.data
       stats.value.pending = bookings.filter((b: any) => b.status === 0).length
       stats.value.approved = bookings.filter((b: any) => b.status === 1).length
       stats.value.rejected = bookings.filter((b: any) => b.status === 2).length
       stats.value.scheduled = bookings.filter((b: any) => b.is_scheduled === 1).length
+      
+      // 刷新成功（不显示提示）
+      if (isRefresh) {
+        console.log('[我的页面] 刷新成功')
+      }
+    } else {
+      throw new Error(res.message || '加载失败')
     }
-  } catch (error) {
-    console.error('加载统计数据失败:', error)
+  } catch (error: any) {
+    console.error('[我的页面] 加载统计数据失败:', error)
+    
+    // 刷新时显示错误提示
+    if (isRefresh) {
+      uni.showToast({
+        title: error.message || '刷新失败',
+        icon: 'none',
+        duration: 2000
+      })
+    }
+  } finally {
+    console.log('[我的页面] 统计数据加载完成')
   }
 }
 
@@ -137,6 +171,33 @@ const { run: uploadAvatar } = useUpload<IUploadSuccessInfo>(
 )
 // #endif
 
+// scroll-view 下拉刷新
+function onRefresh() {
+  console.log('[我的页面] scroll-view 触发下拉刷新')
+  refreshing.value = true
+  
+  loadStats(true)
+    .then(() => {
+      console.log('[我的页面] 刷新数据成功')
+    })
+    .catch((error) => {
+      console.error('[我的页面] 刷新数据失败:', error)
+    })
+    .finally(() => {
+      // 延迟停止刷新，确保动画流畅
+      setTimeout(() => {
+        refreshing.value = false
+        console.log('[我的页面] 停止刷新动画')
+      }, 300)
+    })
+}
+
+// scroll-view 刷新恢复
+function onRestore() {
+  console.log('[我的页面] 刷新恢复')
+  refreshing.value = false
+}
+
 // 微信小程序下登录
 async function handleLogin() {
   // #ifdef MP-WEIXIN
@@ -206,8 +267,39 @@ const editForm = ref({
   teacherEmail: '',
 })
 
+// 页面加载
+function onLoad(options: any) {
+  console.log('[我的页面] 页面加载参数:', options)
+  
+  // 如果有 action=edit 参数，自动打开编辑窗口
+  if (options?.action === 'edit') {
+    // 延迟打开，确保页面渲染完成
+    setTimeout(() => {
+      openEditDialog()
+    }, 500)
+  }
+}
+
 onMounted(() => {
   loadStats()
+  
+  // 监听全局事件，用于从其他页面触发编辑窗口
+  uni.$on('openEditDialog', () => {
+    console.log('[我的页面] 收到打开编辑窗口事件')
+    setTimeout(() => {
+      openEditDialog()
+    }, 300)
+  })
+})
+
+// 页面卸载时移除事件监听
+onUnmounted(() => {
+  uni.$off('openEditDialog')
+})
+
+// 暴露给页面生命周期
+defineExpose({
+  onLoad
 })
 
 function openEditDialog() {
@@ -307,7 +399,17 @@ async function saveUserInfo() {
       />
     </view>
 
-    <scroll-view scroll-y class="scroll-container">
+    <scroll-view 
+      scroll-y 
+      class="scroll-container"
+      refresher-enabled
+      :refresher-triggered="refreshing"
+      @refresherrefresh="onRefresh"
+      @refresherrestore="onRestore"
+    >
+      <!-- 顶部安全距离，避免与下拉刷新冲突 -->
+      <view class="top-safe-area" />
+      
       <!-- 用户信息卡片 -->
       <view class="user-card">
         <view v-if="!tokenStore.hasLogin" class="login-placeholder">
@@ -508,12 +610,12 @@ async function saveUserInfo() {
 
 <style scoped lang="scss">
 .page-container {
-  min-height: 100vh;
+  height: calc(100vh - 80px);  // 减去 tabbar 高度（约50px），确保内容不被遮挡
   background-color: #f5f7fa;
   position: relative;
   width: 100%;
   box-sizing: border-box;
-  overflow-x: hidden;
+  overflow: hidden;
 }
 
 // 顶部背景
@@ -524,6 +626,7 @@ async function saveUserInfo() {
   right: 0;
   height: 400rpx;
   overflow: hidden;
+  z-index: 0;
 }
 
 .bg-image {
@@ -534,14 +637,21 @@ async function saveUserInfo() {
 
 .scroll-container {
   position: relative;
-  height: 100vh;
+  height: 100%;
   width: 100%;
   box-sizing: border-box;
+  z-index: 1;
+}
+
+// 顶部安全距离
+.top-safe-area {
+  height: 80rpx;  // 增加顶部距离，避免太靠近屏幕顶部
+  flex-shrink: 0;
 }
 
 // 用户信息卡片
 .user-card {
-  margin: 40rpx 30rpx 20rpx;
+  margin: 0 30rpx 20rpx;
   padding: 40rpx 30rpx;
   background-color: rgba(255, 255, 255, 0.8);
   border-radius: 20rpx;
@@ -767,7 +877,8 @@ async function saveUserInfo() {
 }
 
 .safe-area-bottom {
-  height: 40rpx;
+  height: calc(env(safe-area-inset-bottom) + 40rpx);  // 底部安全距离，适配刘海屏
+  flex-shrink: 0;
 }
 
 // 教师信息

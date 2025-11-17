@@ -1,0 +1,10 @@
+{
+  "name": "getNoticeList",
+  "version": "1.0.0",
+  "description": "获取公告列表",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "latest"
+  }
+}
+

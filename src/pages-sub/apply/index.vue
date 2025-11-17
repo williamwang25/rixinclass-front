@@ -3,6 +3,7 @@ import { storeToRefs } from 'pinia'
 import { onMounted, onUnmounted, reactive, ref } from 'vue'
 import { useUserStore } from '@/store'
 import { safeAreaInsets } from '@/utils/systemInfo'
+import { getSysConfig } from '@/utils/db'
 
 defineOptions({
   name: 'BookingApply',
@@ -157,7 +158,10 @@ const rules = {
 }
 
 // 初始化数据
-function initData() {
+async function initData() {
+  // 加载系统配置
+  await loadSystemConfig()
+  
   // 生成学年列表（当前年份往后2年）
   const currentYear = new Date().getFullYear()
   yearList.value = []
@@ -168,6 +172,48 @@ function initData() {
       value: `${startYear}-${endYear}`,
       label: `${startYear}-${endYear}`,
     })
+  }
+}
+
+// 加载系统配置
+async function loadSystemConfig() {
+  try {
+    uni.showLoading({ title: '加载配置中...' })
+    
+    // 获取所有系统配置
+    const res = await getSysConfig()
+    
+    if (res.success && res.data) {
+      // 查找当前学年和学期配置
+      const configs = Array.isArray(res.data) ? res.data : [res.data]
+      
+      const academicYearConfig = configs.find((c: any) => c.config_key === 'current_academic_year')
+      const semesterConfig = configs.find((c: any) => c.config_key === 'current_semester')
+      
+      // 自动填充学年和学期
+      if (academicYearConfig) {
+        formData.academicYear = academicYearConfig.config_value
+      }
+      
+      if (semesterConfig) {
+        formData.semester = semesterConfig.config_value
+      }
+      
+      console.log('[loadSystemConfig] 系统配置加载成功:', {
+        academicYear: formData.academicYear,
+        semester: formData.semester
+      })
+    }
+  }
+  catch (error: any) {
+    console.error('[loadSystemConfig] 加载系统配置失败:', error)
+    uni.showToast({
+      title: '加载配置失败',
+      icon: 'none'
+    })
+  }
+  finally {
+    uni.hideLoading()
   }
 }
 
@@ -415,20 +461,18 @@ onUnmounted(() => {
           </view>
 
           <u-form-item label="学年" prop="academicYear" required border-bottom>
-            <view class="select-input" @click="showYearPicker = true">
-              <text :class="formData.academicYear ? 'value' : 'placeholder'">
-                {{ formData.academicYear ? `${formData.academicYear}学年` : '请选择学年' }}
+            <view class="readonly-field">
+              <text class="readonly-value">
+                {{ formData.academicYear ? `${formData.academicYear}学年` : '加载中...' }}
               </text>
-              <u-icon name="arrow-down" size="16" color="#999999" />
             </view>
           </u-form-item>
 
           <u-form-item label="学期" prop="semester" required border-bottom>
-            <view class="select-input" @click="showSemesterPicker = true">
-              <text :class="formData.semester ? 'value' : 'placeholder'">
-                {{ formData.semester || '请选择学期' }}
+            <view class="readonly-field">
+              <text class="readonly-value">
+                {{ formData.semester || '加载中...' }}
               </text>
-              <u-icon name="arrow-down" size="16" color="#999999" />
             </view>
           </u-form-item>
 
@@ -866,6 +910,25 @@ onUnmounted(() => {
   color: #333333;
   font-size: 28rpx;
   margin-right: 8rpx;
+}
+
+// 只读字段样式
+.readonly-field {
+  display: flex;
+  align-items: center;
+  padding: 10rpx 0;
+}
+
+.readonly-value {
+  color: #333333;
+  font-size: 28rpx;
+  font-weight: 500;
+}
+
+.readonly-tip {
+  color: #999999;
+  font-size: 22rpx;
+  margin-left: 12rpx;
 }
 
 // 实验时间段

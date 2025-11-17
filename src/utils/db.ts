@@ -395,3 +395,32 @@ export async function updateUserInfo(userId: number, nickName: string, name: str
   }
 }
 
+/**
+ * 获取系统配置
+ * @param configKey 配置键（可选）
+ */
+export async function getSysConfig(configKey?: string) {
+  try {
+    const res = await wx.cloud.callFunction({
+      name: 'getSysConfig',
+      data: { configKey }
+    }) as any
+    
+    if (!res.result || !res.result.success) {
+      throw new Error(res.result?.message || '查询失败')
+    }
+    
+    return {
+      success: true,
+      data: res.result.data
+    }
+  }
+  catch (error: any) {
+    console.error('[GET_SYS_CONFIG] 查询失败:', error)
+    return {
+      success: false,
+      message: error.message || '查询失败'
+    }
+  }
+}
+
