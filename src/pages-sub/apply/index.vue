@@ -58,6 +58,14 @@ const showYearPicker = ref(false)
 const showSemesterPicker = ref(false)
 const showCourseTypePicker = ref(false)
 
+// 历史排课搜索
+const historySchedules = ref<Array<any>>([])
+const showHistoryList = ref(false)
+const searchLoading = ref(false)
+const currentTeacherName = ref('')
+let searchTimer: any = null  // 防抖定时器
+const searchDelay = ref(500)  // 搜索延迟时间
+
 // 学年列表
 const yearList = ref<Array<{ value: string, label: string }>>([])
 const semesterList = ref([
@@ -270,6 +278,165 @@ function goBack() {
   uni.navigateBack()
 }
 
+// 获取当前教师姓名
+async function loadTeacherName() {
+  try {
+    const userStore = useUserStore()
+    const userId = userStore.userId
+    
+    console.log('[loadTeacherName] 开始获取教师姓名, userId:', userId)
+    
+    if (!userId || userId <= 0) {
+      console.warn('[loadTeacherName] 用户未登录，无法获取教师姓名')
+      uni.showToast({
+        title: '请先登录',
+        icon: 'none'
+      })
+      return
+    }
+    
+    const result = await wx.cloud.callFunction({
+      name: 'getUserInfo',
+      data: { userId }
+    }) as any
+    
+    console.log('[loadTeacherName] 云函数返回结果:', result)
+    
+    if (result.result && result.result.success && result.result.data) {
+      currentTeacherName.value = result.result.data.name || ''
+      console.log('[loadTeacherName] 教师姓名获取成功:', currentTeacherName.value)
+      
+      if (!currentTeacherName.value) {
+        console.warn('[loadTeacherName] 教师姓名为空，请在个人中心完善信息')
+        uni.showToast({
+          title: '请先完善个人信息',
+          icon: 'none',
+          duration: 1000
+        })
+      }
+    } else {
+      console.error('[loadTeacherName] 云函数返回失败:', result.result?.message)
+      uni.showToast({
+        title: '获取用户信息失败',
+        icon: 'none'
+      })
+    }
+  } catch (error: any) {
+    console.error('[loadTeacherName] 获取教师姓名异常:', error)
+    uni.showToast({
+      title: '获取用户信息异常',
+      icon: 'none'
+    })
+  }
+}
+
+// 搜索历史排课记录（带防抖）
+function searchHistorySchedule() {
+  // 清除之前的定时器
+  if (searchTimer) {
+    clearTimeout(searchTimer)
+  }
+  
+  // 检查最小输入长度
+  const codeLength = formData.courseCode?.trim().length || 0
+  const nameLength = formData.courseName?.trim().length || 0
+  
+  // 课程代码至少4位，课程名称至少2位
+  if (codeLength < 4 && nameLength < 2) {
+    historySchedules.value = []
+    showHistoryList.value = false
+    return
+  }
+  
+  // 设置新的定时器，延迟执行搜索
+  searchTimer = setTimeout(() => {
+    performSearch()
+  }, 500)  // 500ms 防抖延迟
+}
+
+// 执行实际搜索
+async function performSearch() {
+  if (!currentTeacherName.value) {
+    console.warn('[performSearch] 教师姓名未获取，无法搜索历史排课')
+    historySchedules.value = []
+    showHistoryList.value = false
+    return
+  }
+  
+  if (!formData.academicYear || !formData.semester) {
+    console.warn('[performSearch] 学年或学期未设置')
+    return
+  }
+  
+  try {
+    searchLoading.value = true
+    showHistoryList.value = true  // 显示加载状态
+    
+    console.log('[performSearch] 开始搜索历史排课:', {
+      teacherName: currentTeacherName.value,
+      courseCode: formData.courseCode,
+      courseName: formData.courseName,
+      academicYear: formData.academicYear,
+      semester: formData.semester
+    })
+    
+    const result = await wx.cloud.callFunction({
+      name: 'searchHistorySchedule',
+      data: {
+        teacherName: currentTeacherName.value,
+        courseCode: formData.courseCode?.trim() || '',
+        courseName: formData.courseName?.trim() || '',
+        academicYear: formData.academicYear,
+        semester: formData.semester
+      }
+    }) as any
+    
+    console.log('[performSearch] 搜索结果:', result)
+    
+    if (result.result && result.result.success) {
+      historySchedules.value = result.result.data || []
+      showHistoryList.value = historySchedules.value.length > 0
+      console.log('[performSearch] 找到', historySchedules.value.length, '条历史记录')
+    } else {
+      console.warn('[performSearch] 搜索失败:', result.result?.message)
+      historySchedules.value = []
+      showHistoryList.value = false
+    }
+  } catch (error: any) {
+    console.error('[performSearch] 搜索异常:', error)
+    historySchedules.value = []
+    showHistoryList.value = false
+  } finally {
+    searchLoading.value = false
+  }
+}
+
+// 输入框聚焦时，如果有历史记录则显示
+function onCourseInputFocus() {
+  const codeLength = formData.courseCode?.trim().length || 0
+  const nameLength = formData.courseName?.trim().length || 0
+  
+  // 如果已有足够长度的输入且有历史记录，则显示列表
+  if ((codeLength >= 4 || nameLength >= 2) && historySchedules.value.length > 0) {
+    showHistoryList.value = true
+  }
+}
+
+// 选择历史排课记录
+function selectHistorySchedule(item: any) {
+  formData.courseCode = item.courseCode || ''
+  formData.courseName = item.courseName || ''
+  formData.courseType = item.courseType || ''
+  
+  // 关闭列表
+  showHistoryList.value = false
+  
+  uni.showToast({
+    title: '已填充课程信息',
+    icon: 'success'
+  })
+}
+
 // 导入个人信息
 function importTeacherInfo() {
   if (!userInfo.value.teacherName && !userInfo.value.teacherPhone && !userInfo.value.teacherEmail) {
@@ -415,21 +582,27 @@ async function submitForm() {
   })
 }
 
-onMounted(() => {
-  initData()
-  formRef.value?.setRules(rules)
-  // 默认添加一个时间段
-  addTimeSlot()
-
-  // 监听签名确认事件
-  uni.$on('signatureConfirm', (signature: string) => {
+onMounted(async () => {
+  // 初始化数据（生成学年列表 + 加载系统配置）
+  await initData()
+  
+  // 添加至少一个时间段
+  if (timeSlots.value.length === 0) {
+    addTimeSlot()
+  }
+  
+  // 获取当前教师姓名
+  await loadTeacherName()
+  
+  // 监听签名返回
+  uni.$on('signatureComplete', (signature: string) => {
     formData.teacherSignature = signature
-    console.log('收到签名:', signature)
   })
 })
 
 onUnmounted(() => {
   // 移除事件监听
+  uni.$off('signatureComplete')
   uni.$off('signatureConfirm')
 })
 </script>
@@ -461,16 +634,16 @@ onUnmounted(() => {
           </view>
 
           <u-form-item label="学年" prop="academicYear" required border-bottom>
-            <view class="readonly-field">
-              <text class="readonly-value">
+            <view class="readonly-field-right">
+              <text class="readonly-value-gray">
                 {{ formData.academicYear ? `${formData.academicYear}学年` : '加载中...' }}
               </text>
             </view>
           </u-form-item>
 
           <u-form-item label="学期" prop="semester" required border-bottom>
-            <view class="readonly-field">
-              <text class="readonly-value">
+            <view class="readonly-field-right">
+              <text class="readonly-value-gray">
                 {{ formData.semester || '加载中...' }}
               </text>
             </view>
@@ -481,8 +654,10 @@ onUnmounted(() => {
               <input
                 v-model="formData.courseCode"
                 class="custom-input"
-                placeholder="请输入课程代码"
+                placeholder="输入4位以上开始匹配"
                 placeholder-class="input-placeholder"
+                @input="searchHistorySchedule"
+                @focus="onCourseInputFocus"
               >
             </view>
           </u-form-item>
@@ -501,11 +676,37 @@ onUnmounted(() => {
               <input
                 v-model="formData.courseName"
                 class="custom-input"
-                placeholder="请输入课程名称"
+                placeholder="输入2位以上开始匹配"
                 placeholder-class="input-placeholder"
+                @input="searchHistorySchedule"
+                @focus="onCourseInputFocus"
               >
             </view>
           </u-form-item>
+          
+          <!-- 历史排课记录下拉列表 -->
+          <view v-if="showHistoryList" class="history-dropdown">
+            <view v-if="searchLoading" class="dropdown-loading">
+              <view class="loading-spinner"></view>
+            </view>
+            <view v-else-if="historySchedules.length === 0" class="dropdown-empty">
+              <text class="empty-text">未找到匹配记录</text>
+            </view>
+            <view v-else class="dropdown-items">
+              <view
+                v-for="(item, index) in historySchedules"
+                :key="index"
+                class="dropdown-item"
+                @click="selectHistorySchedule(item)"
+              >
+                <view class="item-main">
+                  <text class="item-code">{{ item.courseCode }}</text>
+                  <text class="item-name">{{ item.courseName }}</text>
+                </view>
+                <text class="item-type">{{ item.courseType }}</text>
+              </view>
+            </view>
+          </view>
 
           <u-form-item label="大纲学时" prop="requiredHours" required border-bottom>
             <view class="input-wrapper">
@@ -876,6 +1077,124 @@ onUnmounted(() => {
   font-size: 28rpx;
 }
 
+// 带搜索按钮的输入框
+.input-wrapper-with-search {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 16rpx;
+}
+
+.search-btn {
+  padding: 8rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+// 历史排课下拉列表（简洁样式）
+.history-dropdown {
+  margin: 10rpx 0 20rpx 0;
+  background-color: #f5f5f5;
+  border-radius: 8rpx;
+  overflow: hidden;
+  max-height: 400rpx;
+}
+
+.dropdown-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40rpx 0;
+}
+
+.loading-spinner {
+  width: 32rpx;
+  height: 32rpx;
+  border: 3rpx solid #e0e0e0;
+  border-top-color: #0096c2;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.dropdown-empty {
+  padding: 30rpx 0;
+  text-align: center;
+}
+
+.empty-text {
+  font-size: 24rpx;
+  color: #999;
+}
+
+.dropdown-items {
+  max-height: 400rpx;
+  overflow-y: auto;
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16rpx 20rpx;
+  background-color: #f5f5f5;
+  border-bottom: 1rpx solid #e0e0e0;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  
+  &:active {
+    background-color: #e8e8e8;
+  }
+  
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.item-main {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  overflow: hidden;
+}
+
+.item-code {
+  font-size: 24rpx;
+  font-weight: 500;
+  color: #0096c2;
+  flex-shrink: 0;
+}
+
+.item-name {
+  font-size: 26rpx;
+  color: #333;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.item-type {
+  font-size: 22rpx;
+  color: #666;
+  padding: 4rpx 12rpx;
+  background-color: #e0e0e0;
+  border-radius: 4rpx;
+  flex-shrink: 0;
+  margin-left: 12rpx;
+}
+
 // textarea包装器
 .textarea-wrapper {
   width: 100%;
@@ -929,6 +1248,22 @@ onUnmounted(() => {
   color: #999999;
   font-size: 22rpx;
   margin-left: 12rpx;
+}
+
+// 靠右只读字段样式（学年学期）
+.readonly-field-right {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 10rpx 0;
+}
+
+.readonly-value-gray {
+  color: #999999;
+  font-size: 28rpx;
+  font-weight: 400;
+  text-align: right;
 }
 
 // 实验时间段

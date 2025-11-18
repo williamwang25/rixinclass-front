@@ -1,0 +1,10 @@
+{
+  "name": "searchHistorySchedule",
+  "version": "1.0.0",
+  "description": "搜索历史排课记录",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3",
+    "@cloudbase/node-sdk": "^2.3.1"
+  }
+}
